@@ -51,7 +51,7 @@ const Navbar: React.FC = () => {
     ];
 
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50 glass-card !rounded-none border-t-0 border-x-0 !bg-secondary/80">
+        <nav className="fixed top-4 left-4 right-4 lg:left-8 lg:right-8 z-50 glass-card bg-secondary/40 border border-white/10 backdrop-blur-2xl shadow-2xl rounded-2xl transition-all duration-500">
             <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
                 {/* Brand — click to go to Home1 */}
                 <a
