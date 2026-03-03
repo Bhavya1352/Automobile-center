@@ -79,7 +79,7 @@ const UserDashboard: React.FC = () => {
                                 { icon: Clock, label: 'Next Oil Change', value: '4,200 km', sub: 'Due in 3 weeks' },
                                 { icon: Car, label: 'Active Vehicles', value: '2', sub: '1 in service' },
                                 { icon: ShieldCheck, label: 'Warranty', value: 'Active', sub: 'Until Dec 2028' },
-                            ].map((s, i) => (
+                            ].map((s) => (
                                 <div key={s.label} className="glass-card p-4 border-white/5">
                                     <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center mb-3">
                                         <s.icon size={16} className="text-primary" />

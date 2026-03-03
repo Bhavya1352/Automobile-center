@@ -1,6 +1,6 @@
 import React from 'react';
 import Hero, { DotTitle } from '../components/Hero';
-import { Shield, Zap, Target, Clock, Award, Wrench, Users, MapPin } from 'lucide-react';
+import { Shield, Zap, Target, Clock, Award, Wrench, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const About: React.FC = () => {
