@@ -63,17 +63,17 @@ const Hero: React.FC<HeroProps> = ({ title, subtitle, primaryCTA, secondaryCTA, 
                     </p>
 
                     <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6 rtl:space-x-reverse rtl:sm:space-x-reverse pt-4">
-                        <button className="btn-primary w-full sm:w-auto px-10 flex items-center justify-center space-x-2 rtl:space-x-reverse group">
+                        <button className="btn-primary w-full sm:w-auto px-8 py-3 flex items-center justify-center space-x-2 rtl:space-x-reverse group">
                             <span>{primaryCTA}</span>
                             <ArrowRight size={20} className="group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" />
                         </button>
-                        <button className="btn-secondary w-full sm:w-auto px-10">
+                        <button className="btn-secondary w-full sm:w-auto px-8 py-3">
                             {secondaryCTA}
                         </button>
                     </div>
 
-                    <div className="flex items-center space-x-8 rtl:space-x-reverse pt-8 border-t border-white/10">
-                        <div className="flex -space-x-3 rtl:space-x-reverse">
+                    <div className="flex items-center space-x-4 sm:space-x-8 rtl:space-x-reverse pt-8 border-t border-white/10">
+                        <div className="flex -space-x-3 rtl:space-x-reverse flex-shrink-0">
                             {[1, 2, 3, 4].map((i) => (
                                 <img
                                     key={i}
@@ -87,7 +87,7 @@ const Hero: React.FC<HeroProps> = ({ title, subtitle, primaryCTA, secondaryCTA, 
                             <div className="flex items-center space-x-1 rtl:space-x-reverse text-primary">
                                 {[1, 2, 3, 4, 5].map((i) => <Star key={i} size={14} className="fill-current" />)}
                             </div>
-                            <div className="text-sm text-white/40 mt-1">Trusted by 10k+ automotive enthusiasts</div>
+                            <div className="text-xs sm:text-sm text-white/40 mt-1">Trusted by 10k+ automotive enthusiasts</div>
                         </div>
                     </div>
                 </motion.div>
@@ -100,31 +100,31 @@ const Hero: React.FC<HeroProps> = ({ title, subtitle, primaryCTA, secondaryCTA, 
                     className="relative lg:h-[600px] flex items-center justify-center"
                 >
                     <div className="absolute inset-0 bg-primary/20 blur-[150px] rounded-full scale-75" />
-                    <div className="relative glass-card !bg-white/[0.01] p-6 lg:p-12 border-white/5 w-full aspect-video lg:aspect-square flex flex-col justify-center text-center space-y-8 overflow-hidden">
+                    <div className="relative glass-card !bg-white/[0.01] p-4 sm:p-6 lg:p-12 border-white/5 w-full min-h-[350px] sm:aspect-video lg:aspect-square flex flex-col justify-center text-center space-y-4 sm:space-y-8 overflow-hidden mt-8 lg:mt-0">
                         {/* Dynamic Automotive Placeholder */}
                         <motion.div
                             animate={{ y: [0, -10, 0] }}
                             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                             className="relative z-10"
                         >
-                            <CheckCircle2 size={120} className="mx-auto text-primary opacity-20" />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="space-y-4">
-                                    <div className="text-4xl font-bold text-white">PIONEERING TECH</div>
-                                    <div className="text-primary tracking-[0.5em] text-sm uppercase">Next-Gen Service</div>
+                            <CheckCircle2 className="mx-auto text-primary opacity-20 w-24 h-24 sm:w-32 sm:h-32" />
+                            <div className="absolute inset-0 flex items-center justify-center w-full px-2">
+                                <div className="space-y-2 sm:space-y-4">
+                                    <div className="text-2xl sm:text-4xl font-bold text-white leading-tight">PIONEERING TECH</div>
+                                    <div className="text-primary tracking-[0.2em] sm:tracking-[0.5em] text-[10px] sm:text-sm uppercase font-bold">Next-Gen Service</div>
                                 </div>
                             </div>
                         </motion.div>
 
                         {/* Floating UI Elements */}
-                        <div className="absolute top-10 right-10 glass-card p-4 neon-glow border-primary/20">
-                            <div className="text-xs text-white/40 uppercase mb-1">Engine Health</div>
-                            <div className="text-xl font-bold text-primary">98.4%</div>
+                        <div className="absolute top-4 right-4 sm:top-10 sm:right-10 glass-card p-3 sm:p-4 neon-glow border-primary/20 backdrop-blur-md z-20">
+                            <div className="text-[8px] sm:text-xs text-white/40 uppercase mb-0.5 sm:mb-1 font-semibold">Engine Health</div>
+                            <div className="text-base sm:text-xl font-bold text-primary">98.4%</div>
                         </div>
 
-                        <div className="absolute bottom-10 left-10 glass-card p-4 border-white/10">
-                            <div className="text-xs text-white/40 uppercase mb-1">Service Time</div>
-                            <div className="text-xl font-bold text-white">45m Avg.</div>
+                        <div className="absolute bottom-4 left-4 sm:bottom-10 sm:left-10 glass-card p-3 sm:p-4 border-white/10 backdrop-blur-md z-20">
+                            <div className="text-[8px] sm:text-xs text-white/40 uppercase mb-0.5 sm:mb-1 font-semibold">Service Time</div>
+                            <div className="text-base sm:text-xl font-bold text-white">45m Avg.</div>
                         </div>
                     </div>
                 </motion.div>
