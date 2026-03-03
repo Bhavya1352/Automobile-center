@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #10b981;
+  --color-secondary: #0a0a0a;
+  --color-accent: #fbbf24;
+  --color-bg-main: #000000;
+  --color-card-bg: rgba(255, 255, 255, 0.03);
+
+  --font-outfit: "Outfit", sans-serif;
+  --font-inter: "Inter", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-secondary text-white font-inter antialiased;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-outfit;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/[0.03] border border-white/[0.08] backdrop-blur-md rounded-2xl transition-all duration-300;
+  }
+
+  .btn-primary {
+    @apply bg-primary hover:bg-primary/90 text-secondary font-semibold px-6 py-3 rounded-full transition-all active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply bg-transparent border border-white/20 hover:border-primary/50 text-white px-6 py-3 rounded-full transition-all active:scale-95;
+  }
+
+  .neon-glow {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60;
+  }
+
+  .animate-marquee {
+    display: flex;
+    width: max-content;
+    animation: marquee 30s linear infinite;
+  }
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+
+    to {
+      transform: translateX(-50%);
+    }
+  }
+}
+
+/*
+  Globe button is cosmetic only — it does NOT change layout direction.
+  body.rtl-mode class is applied by LanguageContext but triggers no layout changes.
+  The body's direction is locked to LTR above.
+*/
