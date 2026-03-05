@@ -110,7 +110,7 @@ const AdminDashboard: React.FC = () => {
                         </div>
 
                         {/* Stats */}
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             {[
                                 { icon: BarChart3, label: 'Monthly Revenue', value: '₹8.4L', sub: '+8.2% vs last month', col: 'text-primary' },
                                 { icon: Bell, label: 'Active Bookings', value: '48', sub: '12 live today', col: 'text-yellow-400' },
@@ -197,7 +197,7 @@ const AdminDashboard: React.FC = () => {
 
                             <div className="glass-card p-6">
                                 <h2 className="font-bold text-white mb-4">Quick Actions</h2>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {[
                                         { icon: UserPlus, label: 'Add Customer' },
                                         { icon: FileText, label: 'Reports' },
@@ -376,7 +376,7 @@ const AdminDashboard: React.FC = () => {
                         </div>
 
                         {/* Summary */}
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             {[
                                 { label: 'Total Customers', value: '214' },
                                 { label: 'Active This Month', value: '48' },
@@ -444,7 +444,7 @@ const AdminDashboard: React.FC = () => {
                         </div>
 
                         {/* Summary */}
-                        <div className="grid grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             {[
                                 { label: 'On Duty', value: '4' },
                                 { label: 'On Break', value: '1' },
@@ -496,7 +496,7 @@ const AdminDashboard: React.FC = () => {
                             <button className="btn-secondary px-4 py-2 text-sm flex items-center gap-2"><Download size={14} />Export Report</button>
                         </div>
 
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             {[
                                 { label: 'Total Revenue (6M)', value: '₹41.4L', up: true },
                                 { label: 'This Month', value: '₹8.4L', up: true },
@@ -581,7 +581,7 @@ const AdminDashboard: React.FC = () => {
                         </div>
 
                         {/* Status Summary */}
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             {[
                                 { label: 'In Service', value: '3', color: 'text-yellow-400' },
                                 { label: 'Awaiting Parts', value: '1', color: 'text-red-400' },

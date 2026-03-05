@@ -61,9 +61,8 @@ const Navbar: React.FC = () => {
                 { name: 'Home 2 — Heritage', path: '/home2', icon: LayoutDashboard },
             ],
         },
-        { name: 'Solutions', type: 'link', path: '/solutions' },
-        { name: 'Pricing', type: 'link', path: '/pricing' },
         { name: 'About', type: 'link', path: '/about' },
+        { name: 'Contact', type: 'link', path: '/contact' },
         {
             name: 'Dashboard',
             type: 'dropdown',

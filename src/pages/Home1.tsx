@@ -8,7 +8,7 @@ import Hero, { DotTitle } from '../components/Hero';
 import { Cpu, Zap, Gauge, Shield, PenTool, Settings, Activity, Check, Star, ChevronDown, ArrowRight, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PUBLICATIONS, BANNER_STATS } from '../data/siteData';
-import DynamicButton from '../components/common/DynamicButton';
+
 
 const SERVICES = [
     {
@@ -212,7 +212,7 @@ const Home1: React.FC = () => {
                                 <span className="text-primary animate-pulse">● Live</span>
                             </div>
                             {/* Metrics row */}
-                            <div className="grid grid-cols-3 gap-3 mb-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
                                 {[
                                     { label: 'Engine Health', value: '98.4%', color: 'text-primary' },
                                     { label: 'Boost PSI', value: '14.7', color: 'text-white' },

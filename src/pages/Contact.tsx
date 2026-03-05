@@ -205,7 +205,7 @@ const Contact: React.FC = () => {
 
             {/* ── Response Stats ── */}
             <section className="max-w-7xl mx-auto px-4 mb-24">
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                     {RESPONSE_STATS.map((s, i) => (
                         <motion.div
                             key={s.label}
@@ -278,7 +278,7 @@ const Contact: React.FC = () => {
                             transition={{ delay: 0.15 }}
                         >
                             <h3 className="text-lg font-bold text-white mb-5">Most Requested Services</h3>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 {[
                                     { icon: Wrench, label: 'Routine Service' },
                                     { icon: Zap, label: 'Performance Tune' },

@@ -141,7 +141,7 @@ const About: React.FC = () => {
                 </motion.div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-14">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mt-14">
                     {SITE_STATS.map((s, i) => (
                         <motion.div
                             key={s.label}
@@ -373,7 +373,7 @@ const About: React.FC = () => {
                     </p>
                 </motion.div>
 
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {COMMUNITY.map((c, i) => (
                         <motion.div
                             key={c.label}
@@ -420,9 +420,9 @@ const About: React.FC = () => {
                         </div>
                         <p className="text-primary text-sm mt-2 font-medium">123 Performance Drive, Motorway District</p>
                     </div>
-                    <div className="md:ml-auto flex gap-3">
-                        <button className="btn-primary px-6 py-2 text-sm">Get Directions</button>
-                        <button className="btn-secondary px-6 py-2 text-sm">Call Now</button>
+                    <div className="md:ml-auto flex flex-col sm:flex-row w-full md:w-auto gap-3 mt-4 md:mt-0">
+                        <button className="btn-primary w-full sm:w-auto px-6 py-2 text-sm">Get Directions</button>
+                        <button className="btn-secondary w-full sm:w-auto px-6 py-2 text-sm">Call Now</button>
                     </div>
                 </motion.div>
             </section>

@@ -71,7 +71,7 @@ const STEPS = [
 
 // ── Exotic Gallery cars ────────────────────────────────────────────────────
 const GALLERY = [
-    { label: 'Ferrari F8 Tributo', img: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=700&q=75&auto=format&fit=crop', span: 'col-span-2 row-span-2' },
+    { label: 'Ferrari F8 Tributo', img: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=700&q=75&auto=format&fit=crop', span: 'md:col-span-2 md:row-span-2' },
     { label: 'Porsche 911 GT3', img: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500&q=70&auto=format&fit=crop', span: '' },
     { label: 'Mercedes AMG GTR', img: 'https://images.unsplash.com/photo-1571607388263-1044f9ea01dd?w=500&q=70&auto=format&fit=crop', span: '' },
     { label: 'Lamborghini Urus', img: 'https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=500&q=70&auto=format&fit=crop', span: '' },
@@ -227,7 +227,7 @@ const Home2: React.FC = () => {
                     <p className="text-white/40 max-w-sm text-sm leading-relaxed">A curated showcase of the exotic and high-performance machines that have passed through our bays.</p>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[180px]">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[180px]">
                     {GALLERY.map((car, i) => (
                         <motion.div
                             key={car.label}
@@ -467,7 +467,7 @@ const Home2: React.FC = () => {
                         </a>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
                         {TEAM_PREVIEW.map((member, i) => (
                             <motion.div
                                 key={member.name}

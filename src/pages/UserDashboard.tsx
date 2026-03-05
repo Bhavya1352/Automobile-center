@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
     Car, Wrench, Clock, ShieldCheck, FileText, Settings,
     LayoutDashboard, CalendarCheck, AlertTriangle, CheckCircle2,
-    Circle, Plus, Download, Star, TrendingUp, Bell, MessageSquare,
+    Circle, Plus, Download, Star, TrendingUp, Bell,
     Fuel, Gauge, MapPin, ChevronRight, BadgeCheck, CreditCard
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -92,14 +92,14 @@ const UserDashboard: React.FC = () => {
                                 <h1 className="text-2xl font-bold text-white">Welcome back, Arjun 👋</h1>
                                 <p className="text-white/40 text-sm mt-1">Porsche 911 GT3 is in Bay 3. Est. completion: 16:00 today.</p>
                             </div>
-                            <div className="flex gap-3 flex-shrink-0">
-                                <button className="btn-primary px-5 py-2 text-sm">Book Service</button>
-                                <button className="btn-secondary px-5 py-2 text-sm">View History</button>
+                            <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0 w-full sm:w-auto mt-4 sm:mt-0">
+                                <button className="btn-primary w-full sm:w-auto px-5 py-2 text-sm">Book Service</button>
+                                <button className="btn-secondary w-full sm:w-auto px-5 py-2 text-sm">View History</button>
                             </div>
                         </div>
 
                         {/* Stats */}
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             {[
                                 { icon: Wrench, label: 'Services Done', value: '16', sub: '+2 this month' },
                                 { icon: Clock, label: 'Next Service', value: '2,550 km', sub: 'Oil change due' },
@@ -181,7 +181,7 @@ const UserDashboard: React.FC = () => {
                         {/* Alerts */}
                         <div className="space-y-3">
                             {alerts.map((a, i) => (
-                                <div key={i} className={`glass-card p-4 ${a.border} flex items-center gap-4`}>
+                                <div key={i} className={`glass-card p-4 ${a.border} flex flex-col sm:flex-row items-start sm:items-center gap-4`}>
                                     <div className={`w-9 h-9 ${a.bg} rounded-xl flex items-center justify-center flex-shrink-0`}>
                                         <a.icon size={18} className={a.color} />
                                     </div>
@@ -189,7 +189,7 @@ const UserDashboard: React.FC = () => {
                                         <div className="text-white font-semibold text-sm">{a.title}</div>
                                         <div className="text-white/40 text-xs mt-0.5">{a.desc}</div>
                                     </div>
-                                    <button className="btn-secondary text-xs px-4 py-2 flex-shrink-0">{a.action}</button>
+                                    <button className="btn-secondary text-xs w-full sm:w-auto px-4 py-2 mt-2 sm:mt-0 flex-shrink-0">{a.action}</button>
                                 </div>
                             ))}
                         </div>
@@ -420,7 +420,7 @@ const UserDashboard: React.FC = () => {
                         </div>
 
                         {/* Summary Bar */}
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             {[
                                 { label: 'Total Services', value: '16' },
                                 { label: 'Avg. Rating Given', value: '4.8 ★' },
@@ -512,7 +512,7 @@ const UserDashboard: React.FC = () => {
                         {/* Quick Book */}
                         <div className="glass-card p-6">
                             <h3 className="font-bold text-white mb-4">Quick Book a Service</h3>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                                 {[
                                     { icon: Wrench, label: 'Oil Change' },
                                     { icon: Gauge, label: 'Tyre Service' },
@@ -541,7 +541,7 @@ const UserDashboard: React.FC = () => {
                         </div>
 
                         {/* Summary */}
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             {[
                                 { icon: CreditCard, label: 'Total Paid', value: '₹48,100' },
                                 { icon: FileText, label: 'Invoices', value: '5' },
