@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
-import Home from './pages/Home';
 import Home1 from './pages/Home1';
 import Home2 from './pages/Home2';
 import About from './pages/About';
@@ -16,9 +15,12 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Layout><Home /></Layout>} />
+        {/* Default "/" and "/home1" both show Home1 */}
+        <Route path="/" element={<Layout><Home1 /></Layout>} />
         <Route path="/home1" element={<Layout><Home1 /></Layout>} />
+        {/* "/home2" shows Home2 exclusively */}
         <Route path="/home2" element={<Layout><Home2 /></Layout>} />
+
         <Route path="/about" element={<Layout><About /></Layout>} />
         <Route path="/contact" element={<Layout><Contact /></Layout>} />
         <Route path="/user-dashboard" element={<Layout><UserDashboard /></Layout>} />
@@ -26,7 +28,7 @@ function App() {
         <Route path="/technicians" element={<Layout><Technicians /></Layout>} />
         <Route path="/certifications" element={<Layout><Certifications /></Layout>} />
         <Route path="/careers" element={<Layout><Careers /></Layout>} />
-        <Route path="/get-started" element={<Layout showFooter={false}><GetStarted /></Layout>} />
+        <Route path="/get-started" element={<Layout><GetStarted /></Layout>} />
       </Routes>
     </Router>
   );

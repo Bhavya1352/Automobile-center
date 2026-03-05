@@ -2,6 +2,154 @@
 
 @import "tailwindcss";
 
+/* Navbar Styles */
+.navbar-container {
+  @apply fixed top-0 start-0 end-0 z-50 py-3 md:py-10;
+}
+
+.navbar-wrapper {
+  @apply max-w-7xl mx-auto px-3 md:px-6;
+}
+
+.navbar-content {
+  @apply flex items-center justify-between h-16 md:h-20 px-4 md:px-8 rounded-2xl md:rounded-[2.5rem] bg-black/40 backdrop-blur-3xl border border-white/5 shadow-2xl;
+}
+
+.navbar-logo {
+  @apply flex items-center gap-2;
+}
+
+.navbar-logo-icon {
+  @apply w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 p-2 flex items-center justify-center transition-transform;
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.3), inset 0 0 15px rgba(16, 185, 129, 0.1);
+}
+
+.navbar-logo:hover .navbar-logo-icon {
+  @apply rotate-12;
+}
+
+.navbar-logo-text {
+  @apply hidden sm:inline text-xl font-outfit font-black text-white italic tracking-tighter;
+}
+
+.navbar-links {
+  @apply hidden md:flex items-center gap-10;
+}
+
+.navbar-dropdown {
+  @apply relative;
+}
+
+.navbar-dropdown-button {
+  @apply flex items-center gap-1 text-[11px] font-black uppercase tracking-widest text-white/50 hover:text-white transition-colors py-2;
+}
+
+.navbar-dropdown-menu {
+  @apply absolute top-full start-1/2 -translate-x-1/2 rtl:translate-x-1/2 mt-4 w-72 p-4 rounded-[2rem] bg-[#0a0c10] border border-white/10 backdrop-blur-2xl;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+.navbar-dropdown-item {
+  @apply flex items-center gap-4 p-3 rounded-2xl hover:bg-white/5 transition-all;
+}
+
+.navbar-dropdown-icon {
+  @apply w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 transition-colors;
+}
+
+.navbar-dropdown-item:hover .navbar-dropdown-icon {
+  @apply text-purple-500;
+}
+
+.navbar-dropdown-title {
+  @apply text-[11px] font-black uppercase tracking-widest text-white transition-colors;
+}
+
+.navbar-dropdown-item:hover .navbar-dropdown-title {
+  @apply text-purple-500;
+}
+
+.navbar-dropdown-subtitle {
+  @apply text-[9px] font-medium text-white/30 italic;
+}
+
+.navbar-link {
+  @apply text-[11px] font-black uppercase tracking-widest text-white/50 hover:text-white transition-colors;
+}
+
+.navbar-actions {
+  @apply flex items-center gap-2 md:gap-6;
+}
+
+.navbar-login {
+  @apply hidden lg:block text-[11px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors;
+}
+
+.navbar-cta {
+  @apply hidden sm:inline-block px-4 md:px-6 py-2.5 md:py-3 rounded-xl bg-white text-black text-[10px] md:text-[11px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+.navbar-toggle-btn {
+  @apply w-9 h-9 md:w-10 md:h-10 rounded-lg md:rounded-xl border border-white/10 bg-white/5 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all;
+}
+
+.navbar-mobile-btn {
+  @apply md:hidden flex flex-col gap-1.5 p-2;
+}
+
+.navbar-mobile-menu {
+  @apply md:hidden mt-4 overflow-hidden rounded-[2.5rem] bg-black/80 backdrop-blur-3xl border border-white/5 shadow-2xl;
+}
+
+.navbar-mobile-content {
+  @apply p-8 flex flex-col gap-8;
+}
+
+.navbar-mobile-section {
+  @apply space-y-4;
+}
+
+.navbar-mobile-heading {
+  @apply text-[10px] font-black text-white/30 uppercase tracking-[0.2em];
+}
+
+.navbar-mobile-grid {
+  @apply grid grid-cols-1 gap-2;
+}
+
+.navbar-mobile-item {
+  @apply flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5;
+}
+
+.navbar-mobile-link {
+  @apply p-4 rounded-2xl bg-white/5 border border-white/5 text-[11px] font-black uppercase tracking-widest text-white;
+}
+
+.navbar-mobile-auth {
+  @apply flex gap-4 pt-4 border-t border-white/5;
+}
+
+.navbar-mobile-login {
+  @apply flex-1 py-4 text-center rounded-2xl border border-white/10 text-[11px] font-black uppercase tracking-widest text-white;
+}
+
+.navbar-mobile-signup {
+  @apply flex-1 py-4 text-center rounded-2xl bg-white text-black text-[11px] font-black uppercase tracking-widest;
+}
+
+.chevron-rotate {
+  @apply w-3 h-3 transition-transform duration-300;
+}
+
+.hamburger-line {
+  @apply w-6 h-0.5 bg-white/50 transition-colors;
+}
+
+.navbar-mobile-btn:hover .hamburger-line {
+  @apply bg-white;
+}
+
 @theme {
   --color-primary: #10b981;
   --color-secondary: #0a0a0a;
@@ -43,11 +191,21 @@
   }
 
   .btn-primary {
-    @apply bg-primary hover:bg-emerald-400 text-secondary font-bold px-7 py-3 rounded-full transition-all duration-300 active:scale-95 shadow-[0_0_0_rgba(16, 185, 129, 0)] hover:shadow-[0_0_25px_rgba(16, 185, 129, 0.4)] hover:-translate-y-0.5;
+    @apply bg-primary hover:bg-emerald-400 text-secondary font-bold px-7 py-3 rounded-full transition-all duration-300 active:scale-95 hover:-translate-y-0.5;
+    box-shadow: 0 0 0 rgba(16, 185, 129, 0);
+    transition: box-shadow 0.3s ease, transform 0.3s ease, background-color 0.3s ease;
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.4);
   }
 
   .btn-secondary {
-    @apply bg-transparent border border-white/10 hover:border-primary/50 text-white hover:bg-white/[0.02] font-semibold px-7 py-3 rounded-full transition-all duration-300 active:scale-95 hover:shadow-[0_0_20px_rgba(16, 185, 129, 0.1)] hover:-translate-y-0.5;
+    @apply bg-transparent border border-white/10 hover:border-primary/50 text-white hover:bg-white/[0.02] font-semibold px-7 py-3 rounded-full transition-all duration-300 active:scale-95 hover:-translate-y-0.5;
+  }
+
+  .btn-secondary:hover {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
   }
 
   .neon-glow {

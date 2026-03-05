@@ -9,7 +9,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children, showFooter = true }) => {
     return (
-        <div className="min-h-screen flex flex-col pt-20">
+        <div className="min-h-screen flex flex-col pt-24 md:pt-28">
             <Navbar />
             <main className="flex-grow">
                 {children}

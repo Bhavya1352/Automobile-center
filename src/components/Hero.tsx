@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Star, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Star } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 /** Wraps any ReactNode title so the terminal period moves to the front in RTL mode. */
@@ -100,21 +100,15 @@ const Hero: React.FC<HeroProps> = ({ title, subtitle, primaryCTA, secondaryCTA, 
                     className="relative lg:h-[600px] flex items-center justify-center"
                 >
                     <div className="absolute inset-0 bg-primary/20 blur-[150px] rounded-full scale-75" />
-                    <div className="relative glass-card !bg-white/[0.01] p-4 sm:p-6 lg:p-12 border-white/5 w-full min-h-[350px] sm:aspect-video lg:aspect-square flex flex-col justify-center text-center space-y-4 sm:space-y-8 overflow-hidden mt-8 lg:mt-0">
-                        {/* Dynamic Automotive Placeholder */}
-                        <motion.div
-                            animate={{ y: [0, -10, 0] }}
-                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                            className="relative z-10"
-                        >
-                            <CheckCircle2 className="mx-auto text-primary opacity-20 w-24 h-24 sm:w-32 sm:h-32" />
-                            <div className="absolute inset-0 flex items-center justify-center w-full px-2">
-                                <div className="space-y-2 sm:space-y-4">
-                                    <div className="text-2xl sm:text-4xl font-bold text-white leading-tight">PIONEERING TECH</div>
-                                    <div className="text-primary tracking-[0.2em] sm:tracking-[0.5em] text-[10px] sm:text-sm uppercase font-bold">Next-Gen Service</div>
-                                </div>
-                            </div>
-                        </motion.div>
+                    <div className="relative glass-card !bg-transparent border-white/10 w-full min-h-[350px] sm:aspect-video lg:aspect-square overflow-hidden mt-8 lg:mt-0">
+                        {/* Hero Car Image */}
+                        <img
+                            src="https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=900&q=80&auto=format&fit=crop"
+                            alt="High-performance sports car"
+                            className="w-full h-full object-cover"
+                        />
+                        {/* Dark overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-secondary/80 via-secondary/20 to-transparent" />
 
                         {/* Floating UI Elements */}
                         <div className="absolute top-4 right-4 sm:top-10 sm:right-10 glass-card p-3 sm:p-4 neon-glow border-primary/20 backdrop-blur-md z-20">
