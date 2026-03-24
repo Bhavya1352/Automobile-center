@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { Globe, Menu, X, ChevronDown, User, ShieldCheck, Car, LayoutDashboard, Zap } from 'lucide-react';
+import { useInventory } from '../context/InventoryContext';
+import { Globe, Menu, X, ChevronDown, User, ShieldCheck, Car, LayoutDashboard, Zap, Heart, ArrowRightLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -19,6 +20,7 @@ interface NavLink {
 
 const Navbar: React.FC = () => {
     const { direction, toggleDirection } = useLanguage();
+    const { wishlist, compareList } = useInventory();
     const [mobileOpen, setMobileOpen] = useState(false);
     const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
     const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
@@ -62,6 +64,7 @@ const Navbar: React.FC = () => {
             ],
         },
         { name: 'About', type: 'link', path: '/about' },
+        { name: 'Inventory', type: 'link', path: '/inventory' },
         { name: 'Contact', type: 'link', path: '/contact' },
         {
             name: 'Dashboard',
@@ -208,6 +211,30 @@ const Navbar: React.FC = () => {
 
                 {/* ── Desktop Actions ───────────────────────────────── */}
                 <div className="hidden lg:flex items-center gap-4">
+                    <button
+                        onClick={() => navigate('/inventory')}
+                        className="p-2 text-white/50 hover:text-primary transition-colors rounded-lg hover:bg-white/5 relative"
+                        title="Wishlist"
+                    >
+                        <Heart size={18} fill={wishlist.length > 0 ? 'currentColor' : 'none'} />
+                        {wishlist.length > 0 && (
+                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-secondary text-[10px] font-black rounded-full flex items-center justify-center">
+                                {wishlist.length}
+                            </span>
+                        )}
+                    </button>
+                    <button
+                        onClick={() => navigate('/compare')}
+                        className="p-2 text-white/50 hover:text-primary transition-colors rounded-lg hover:bg-white/5 relative"
+                        title="Compare"
+                    >
+                        <ArrowRightLeft size={18} />
+                        {compareList.length > 0 && (
+                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-secondary text-[10px] font-black rounded-full flex items-center justify-center">
+                                {compareList.length}
+                            </span>
+                        )}
+                    </button>
                     <button
                         onClick={toggleDirection}
                         className="p-2 text-white/50 hover:text-primary transition-colors rounded-lg hover:bg-white/5"
