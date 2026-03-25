@@ -8,8 +8,8 @@
  * Simulates: network latency, error handling, pagination.
  */
 
-import { CARS } from './carsData';
-import type { Car } from './carsData';
+import { CARS } from '../data/carsData';
+import type { Car } from '../data/carsData';
 
 // Re-export the type for consumers
 export type { Car };
