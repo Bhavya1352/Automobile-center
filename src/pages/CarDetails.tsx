@@ -5,7 +5,7 @@ import { fetchCarById, fetchAllCars } from '../services/carService';
 import type { Car } from '../data/carsData';
 import { useInventory } from '../context/InventoryContext';
 import { useToast } from '../context/ToastContext';
-import { Zap, Gauge, Shield, Cpu, ArrowLeft, Heart, ArrowRightLeft, Star, Clock, Flame, CheckCircle2, Loader2 } from 'lucide-react';
+import { Zap, Gauge, Cpu, ArrowLeft, Heart, ArrowRightLeft, Star, Clock, Flame, CheckCircle2, Loader2 } from 'lucide-react';
 
 const CarDetails: React.FC = () => {
     const { id } = useParams<{ id: string }>();

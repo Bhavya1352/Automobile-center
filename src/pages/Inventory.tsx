@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, SlidersHorizontal, Heart, ArrowRightLeft, Star, LayoutGrid, List, ChevronDown, ArrowRight, Loader2 } from 'lucide-react';
+import { Search, SlidersHorizontal, Heart, ArrowRightLeft, Star, LayoutGrid, List, ChevronDown, ArrowRight } from 'lucide-react';
 import { fetchFilteredCars } from '../services/carService';
 import type { Car } from '../data/carsData';
 import { useInventory } from '../context/InventoryContext';

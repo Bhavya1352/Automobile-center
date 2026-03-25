@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+
 import { CARS } from '../data/carsData';
 import type { Car } from '../data/carsData';
 import { useInventory } from '../context/InventoryContext';
