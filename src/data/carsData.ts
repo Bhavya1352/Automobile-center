@@ -1,23 +1,8 @@
 /**
- * carsData.ts — Vehicle inventory data with type definitions.
- * Single source of truth for car interface + inventory array.
+ * carsData.ts — the vehicle showcase dataset.
+ * Stands in for GET /api/vehicles until there is a backend.
  */
-
-export interface Car {
-    id: string;
-    name: string;
-    brand: string;
-    type: 'Coupe' | 'Sedan' | 'SUV' | 'Convertible' | 'Hypercar';
-    price: number;
-    hp: number;
-    engine: string;
-    acceleration: string;
-    topSpeed: number;
-    year: number;
-    image: string;
-    description: string;
-    features: string[];
-}
+import type { Car } from '../types/vehicle';
 
 export const CARS: Car[] = [
     {
@@ -91,7 +76,7 @@ export const CARS: Car[] = [
         acceleration: '2.8s',
         topSpeed: 341,
         year: 2024,
-        image: 'https://images.unsplash.com/photo-1597404294360-fedeca044ad1?w=1000&q=80',
+        image: 'https://images.unsplash.com/photo-1511919884226-fd3cad34687c?w=1000&q=80',
         description: 'Lighter, stronger, faster. The 720S Spider is the perfect fusion of extreme performance and open-top excitement.',
         features: ['Monocage II-S', 'Proactive Chassis Control II', 'Retractable Hard Top', 'Static Adaptive Headlights']
     },
@@ -114,14 +99,14 @@ export const CARS: Car[] = [
         id: 'audi-rs6',
         name: 'RS6 Avant',
         brand: 'Audi',
-        type: 'Sedan',
+        type: 'Estate',
         price: 125800,
         hp: 621,
         engine: '4.0L V8 Twin-Turbo',
         acceleration: '3.3s',
         topSpeed: 305,
         year: 2024,
-        image: 'https://images.unsplash.com/photo-1621485488224-5119bb559a7a?w=1000&q=80',
+        image: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&q=80',
         description: 'The ultimate sleeper. Combining supercar performance with everyday practicality and estate-car versatility.',
         features: ['Quattro AWD', 'Dynamic All-wheel Steering', 'Matrix LED Headlights', 'Virtual Cockpit']
     },

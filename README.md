@@ -1,87 +1,86 @@
-# AutoSphere - Premium Automobile Service Center
+# AutoSphere — independent car service centre
 
-![AutoSphere Hero](https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=1200)
+A front-end for an independent automotive service centre: service catalogue,
+AI-assisted symptom triage, vehicle health records, booking entry points and
+customer/workshop dashboards.
 
-AutoSphere is a high-end, premium frontend web application tailored for advanced automobile service centers, luxury garages, and performance tuning shops. Designed with a sleek, dark glassmorphism aesthetic, it offers a distinct, modern user experience.
+## Design
 
-## ✨ Key Features
+The interface is light, editorial and typographic. Photography and type carry
+the page; sections are separated by hairline rules rather than floating cards.
 
-- **Dual-Themed Homepages**
-  - **Home 1 (Precision Tech):** Focused on modern telemetry, ECU tuning, and high-performance digital diagnostics.
-  - **Home 2 (Heritage Mastery):** Focused on classic restorations, mechanical perfection, and legacy craftsmanship.
-- **Dedicated Dashboards**
-  - **User Dashboard:** For customers to manage their vehicles, track real-time service progress, view history, and download invoices. Layout features horizontal tab navigation.
-  - **Admin Dashboard:** A full command center for the workshop admin to monitor live service queues, bay status, active technicians, and revenue.
-- **RTL & LTR Support:** Complete bidirectional layout support. Click the Globe icon in the navbar to seamlessly switch the entire layout from Left-to-Right to Right-to-Left (perfect for Arabic/Hebrew localization).
-- **Fully Responsive UI:** Flawless scaling from mobile devices (360px) to ultra-wide desktop monitors, ensuring tables and tab bars scroll horizontally cleanly without breaking layouts.
-- **Premium Aesthetics:** Constructed entirely with a dark navy/emerald color palette and immersive glassmorphic (`backdrop-blur`) overlays. Smooth page transitions powered by Framer Motion.
+| Token | Value | Use |
+| --- | --- | --- |
+| `paper` | `#F5F3EE` | Page ground |
+| `surface` | `#FFFFFF` | Panels, tables |
+| `sand` | `#ECE9E1` | Alternating section bands |
+| `ink` | `#171A18` | Primary text |
+| `muted` | `#666862` | Secondary text |
+| `forest` | `#183F35` | Primary actions, the closing band |
+| `clay` | `#C76B32` | Accent: urgency, emphasis, hover |
+| `line` | `#D9D7D0` | Hairline borders |
 
-## 🛠️ Tech Stack
+**Type** — [Fraunces](https://fonts.google.com/specimen/Fraunces) for display
+(`SOFT`/`WONK` at 0 for a crisp editorial cut), [IBM Plex
+Sans](https://fonts.google.com/specimen/IBM+Plex+Sans) for body, IBM Plex Mono
+for technical readouts (odometer, registration, measurements).
 
-- **Framework:** React 18 with TypeScript
-- **Bundler:** Vite
-- **Styling:** Tailwind CSS (v3)
-- **Icons:** Lucide React
-- **Animations:** Framer Motion
-- **Routing:** React Router DOM
+**Rules the design holds to** — no dark theme, no glassmorphism, no glow, no
+decorative gradients, corner radii of 1–4px only, no icon-in-a-square per
+feature, no eyebrow pill above every heading, and no repeated three-column card
+grid. Section composition alternates between asymmetric, grid and full-bleed so
+no two consecutive sections read the same way.
 
-## 🚀 Getting Started
+## Stack
 
-To get a local copy up and running, follow these simple steps.
+- **React 19** with TypeScript 5.9 in `strict` mode
+- **Vite 7**
+- **Tailwind CSS v4** — tokens declared in the `@theme` block of
+  `src/index.css`; there is deliberately no `tailwind.config.js`
+- **React Router 7**, **Framer Motion**, **Lucide**
 
-### Prerequisites
+## Getting started
 
-Ensure you have Node.js installed on your machine.
-- Node.js (v16 or higher)
-- npm or yarn
+```bash
+npm install
+npm run dev      # http://localhost:5173
+npm run build    # tsc -b && vite build
+npm run lint
+```
 
-### Installation
-
-1. Clone the repo
-   ```bash
-   git clone https://github.com/Bhavya1352/Automobile-center.git
-   ```
-2. Navigate to the project directory
-   ```bash
-   cd Automobile-center
-   ```
-3. Install NPM packages
-   ```bash
-   npm install
-   ```
-4. Start the development server
-   ```bash
-   npm run dev
-   ```
-5. Open your browser and navigate to `http://localhost:5173` (or the port provided by Vite).
-
-## 📁 Project Structure
+## Structure
 
 ```
 src/
-├── components/       # Reusable UI elements (Navbar, Footer, Hero, etc.)
-├── context/          # React Context providers (LanguageContext for RTL/LTR)
-├── pages/            # Main application pages
-│   ├── Home1.tsx        # Tech-focused landing
-│   ├── Home2.tsx        # Heritage-focused landing
-│   ├── About.tsx        # Company information
-│   ├── Contact.tsx      # Contact form and details
-│   ├── GetStarted.tsx   # Registration/Login flow
-│   ├── UserDashboard.tsx# Customer portal
-│   └── AdminDashboard.tsx# Workshop management portal
-├── App.tsx           # Main application routing & layout configuration
-├── index.css         # Global styles and Tailwind directives
-└── main.tsx          # Application entry point
+├── components/   Shell: Navbar, Footer, Layout, PageHero, ErrorBoundary…
+├── sections/     Homepage sections, one file each
+├── pages/        Routed pages
+├── data/         homeData.ts (homepage content), carsData, siteData
+├── context/      Inventory, Toast
+├── hooks/        useDebounce, useFilterParams
+├── lib/          cn() class-merge helper
+└── services/     carService — mock API boundary
 ```
 
-## 🌐 Layout Features
+Homepage sections compose in `src/pages/Home.tsx`: Hero → Accreditations →
+Services → HowItWorks → AiCheck → VehicleHealth → Trust → Pricing →
+Testimonials → FAQ → ClosingCta.
 
-- **Automated Footer Management:** The `Layout.tsx` component automatically handles footer visibility. It hides the footer on Dashboard pages to prevent layout clustering with fixed elements, and shows it on public-facing marketing pages.
-- **Sticky Tab Navigation:** Instead of traditional sidebars (which waste horizontal space on smaller screens), both dashboards utilize sticky horizontal scrolling tab bars for a cleaner mobile and desktop experience.
+## The AI vehicle check
 
-## 📄 License
+Presented as a product feature, not decoration. The owner describes a symptom in
+plain language; the check reads it against the vehicle's service history and
+common faults for the model, then returns a likely cause, the evidence it used,
+an urgency level, and a recommended service that hands off into booking.
 
-Distributed under the MIT License. See `LICENSE` for more information.
+The UI states plainly that it is an AI-assisted recommendation rather than a
+mechanical diagnosis, and that a technician confirms the cause before any work
+is quoted. The content currently ships as a worked example in
+`src/data/homeData.ts`; wiring it to a real model is a backend task.
 
----
-*Developed with focus on mechanical perfection and digital excellence.*
+## Known gaps
+
+- Forms (contact, registration) are not yet wired to a backend.
+- The customer and workshop dashboards are migrated to the new palette but
+  still use the previous dashboard layout and hardcoded data.
+- `carsData.ts` is a vehicle showcase, not the service domain model.

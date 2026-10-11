@@ -9,15 +9,18 @@
  */
 
 import { CARS } from '../data/carsData';
-import type { Car } from '../data/carsData';
+import type { Car, FetchCarsParams, VehicleSort } from '../types/vehicle';
 
-// Re-export the type for consumers
-export type { Car };
+export type { Car, FetchCarsParams, VehicleSort };
 
-// ── Simulated network delay (200-600ms like a real CDN) ──
+/** Stand-in for real network latency, so loading states are exercised
+ *  in development rather than flashing past. */
+const MIN_LATENCY_MS = 200;
+const LATENCY_JITTER_MS = 400;
+
 const simulateLatency = () =>
     new Promise<void>(resolve =>
-        setTimeout(resolve, 200 + Math.random() * 400)
+        setTimeout(resolve, MIN_LATENCY_MS + Math.random() * LATENCY_JITTER_MS)
     );
 
 /**
@@ -42,12 +45,6 @@ export async function fetchCarById(id: string): Promise<Car | null> {
  * Search + filter + sort — simulates GET /api/vehicles?q=&type=&maxPrice=&sort=
  * All filtering happens server-side in production.
  */
-export interface FetchCarsParams {
-    search?: string;
-    type?: string;
-    maxPrice?: number;
-    sort?: 'price-asc' | 'price-desc' | 'hp-desc';
-}
 
 export async function fetchFilteredCars(params: FetchCarsParams): Promise<Car[]> {
     await simulateLatency();
@@ -66,8 +63,9 @@ export async function fetchFilteredCars(params: FetchCarsParams): Promise<Car[]>
         results = results.filter(car => car.type === params.type);
     }
 
-    if (params.maxPrice) {
-        results = results.filter(car => car.price <= params.maxPrice!);
+    if (params.maxPrice !== undefined) {
+        const max = params.maxPrice;
+        results = results.filter(car => car.price <= max);
     }
 
     switch (params.sort) {

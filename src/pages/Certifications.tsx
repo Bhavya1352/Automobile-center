@@ -58,7 +58,7 @@ const Certifications: React.FC = () => {
                 breadcrumb={['Home', 'Certifications']}
             />
 
-            <section className="max-w-7xl mx-auto px-4">
+            <section className="wrap">
 
                 {/* ASE Highlight */}
                 <div className="grid lg:grid-cols-2 gap-16 items-center mb-28">
@@ -68,13 +68,13 @@ const Certifications: React.FC = () => {
                         viewport={{ once: true }}
                         className="space-y-8"
                     >
-                        <h2 className="text-4xl font-bold text-white">ASE Blue Seal of Excellence</h2>
-                        <p className="text-white/40 leading-relaxed text-lg">
+                        <h2 className="text-4xl font-bold text-ink">ASE Blue Seal of Excellence</h2>
+                        <p className="text-muted leading-relaxed text-lg">
                             AutoSphere is proud to hold the ASE Blue Seal — one of the most rigorous and prestigious designations
                             in the automotive service industry. This certification requires that at least 75% of our technicians
                             are ASE certified across all service areas, and that every department is covered by a certified professional.
                         </p>
-                        <p className="text-white/40 leading-relaxed">
+                        <p className="text-muted leading-relaxed">
                             Less than 5% of independent shops nationwide hold this distinction.
                             We've maintained it continuously since 2004 — every year, without exception.
                         </p>
@@ -82,7 +82,7 @@ const Certifications: React.FC = () => {
                             <ShieldCheck size={24} />
                             <span>Verified Facility #8892-ALPHA</span>
                         </div>
-                        <div className="flex items-center gap-4 text-white/40 text-sm">
+                        <div className="flex items-center gap-4 text-muted text-sm">
                             <BadgeCheck size={18} className="text-primary" />
                             <span>Last revalidated: January 2025</span>
                         </div>
@@ -91,14 +91,14 @@ const Certifications: React.FC = () => {
                         initial={{ opacity: 0, scale: 0.93 }}
                         whileInView={{ opacity: 1, scale: 1 }}
                         viewport={{ once: true }}
-                        className="glass-card p-12 flex flex-col items-center justify-center relative overflow-hidden border-primary/20 gap-6"
+                        className="panel p-12 flex flex-col items-center justify-center relative overflow-hidden border-forest gap-6"
                     >
-                        <div className="absolute inset-0 bg-primary/5" />
+                        <div className="absolute inset-0 bg-forest-pale" />
                         <Award size={100} className="text-primary relative z-10" />
                         <div className="relative z-10 text-center">
-                            <div className="text-white font-bold text-xl">ASE Blue Seal</div>
+                            <div className="text-ink font-bold text-xl">ASE Blue Seal</div>
                             <div className="text-primary text-sm mt-1">Facility of Excellence</div>
-                            <div className="text-white/30 text-xs mt-3 font-mono">Cert. valid through Dec 2025</div>
+                            <div className="text-muted text-xs mt-3 font-mono">Cert. valid through Dec 2025</div>
                         </div>
                     </motion.div>
                 </div>
@@ -110,8 +110,8 @@ const Certifications: React.FC = () => {
                     viewport={{ once: true }}
                     className="text-center mb-14"
                 >
-                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Full Certification Catalogue</h2>
-                    <p className="text-white/40 max-w-xl mx-auto">
+                    <h2 className="text-3xl md:text-4xl font-bold text-ink mb-4">Full Certification Catalogue</h2>
+                    <p className="text-muted max-w-xl mx-auto">
                         Across safety, technical, environmental, and training standards — we hold over 25 active certifications.
                     </p>
                 </motion.div>
@@ -124,17 +124,17 @@ const Certifications: React.FC = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: i * 0.08 }}
-                            className="glass-card p-7 hover:border-primary/30 transition-all hover:-translate-y-1 duration-300"
+                            className="panel p-7 hover:border-forest transition-colors"
                         >
                             <div className="flex items-center gap-3 mb-5">
-                                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+                                <div className="w-10 h-10 bg-forest-pale rounded-sm flex items-center justify-center">
                                     <cat.icon size={20} className="text-primary" />
                                 </div>
-                                <h3 className="text-white font-bold">{cat.title}</h3>
+                                <h3 className="text-ink font-bold">{cat.title}</h3>
                             </div>
                             <ul className="space-y-2">
                                 {cat.items.map(item => (
-                                    <li key={item} className="flex items-start gap-2 text-white/40 text-sm">
+                                    <li key={item} className="flex items-start gap-2 text-muted text-sm">
                                         <CheckCircle2 size={14} className="text-primary mt-0.5 flex-shrink-0" />
                                         {item}
                                     </li>
@@ -151,8 +151,8 @@ const Certifications: React.FC = () => {
                     viewport={{ once: true }}
                     className="text-center mb-14"
                 >
-                    <h2 className="text-3xl font-bold text-white mb-4">How Our Certification Process Works</h2>
-                    <p className="text-white/40 max-w-xl mx-auto">We earn every credential. No self-assessment — only independent third-party verification.</p>
+                    <h2 className="text-3xl font-bold text-ink mb-4">How Our Certification Process Works</h2>
+                    <p className="text-muted max-w-xl mx-auto">We earn every credential. No self-assessment — only independent third-party verification.</p>
                 </motion.div>
 
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-28">
@@ -163,19 +163,19 @@ const Certifications: React.FC = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: i * 0.1 }}
-                            className="glass-card p-7 text-center hover:border-primary/30 transition-colors"
+                            className="panel p-7 text-center hover:border-forest transition-colors"
                         >
-                            <div className="text-5xl font-black text-primary/20 mb-4">{step.step}</div>
-                            <h3 className="text-white font-bold mb-3">{step.title}</h3>
-                            <p className="text-white/40 text-sm leading-relaxed">{step.desc}</p>
+                            <div className="text-5xl font-semibold text-primary/20 mb-4">{step.step}</div>
+                            <h3 className="text-ink font-bold mb-3">{step.title}</h3>
+                            <p className="text-muted text-sm leading-relaxed">{step.desc}</p>
                         </motion.div>
                     ))}
                 </div>
 
                 {/* Partner Endorsements */}
                 <div className="text-center space-y-4 mb-12">
-                    <h2 className="text-3xl font-bold text-white">Partner Endorsements</h2>
-                    <p className="text-white/40 max-w-xl mx-auto">Recognised and endorsed by the industry's leading brands.</p>
+                    <h2 className="text-3xl font-bold text-ink">Partner Endorsements</h2>
+                    <p className="text-muted max-w-xl mx-auto">Recognised and endorsed by the industry's leading brands.</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -186,10 +186,10 @@ const Certifications: React.FC = () => {
                             whileInView={{ opacity: 1, scale: 1 }}
                             viewport={{ once: true }}
                             transition={{ delay: i * 0.1 }}
-                            className="glass-card p-6 flex items-center space-x-4 border-white/5 hover:border-primary/30 transition-colors"
+                            className="panel p-6 flex items-center space-x-4 border-line hover:border-forest transition-colors"
                         >
                             <CheckCircle2 className="text-primary flex-shrink-0" size={24} />
-                            <span className="text-white font-medium">{p.label}</span>
+                            <span className="text-ink font-medium">{p.label}</span>
                         </motion.div>
                     ))}
                 </div>

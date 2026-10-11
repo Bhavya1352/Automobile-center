@@ -131,8 +131,8 @@ const About: React.FC = () => {
             {/* ── Who We Are ── */}
             <section className="max-w-5xl mx-auto px-4 pb-24 text-center">
                 <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Who We Are</h2>
-                    <p className="text-white/50 text-lg leading-relaxed max-w-3xl mx-auto">
+                    <h2 className="text-3xl md:text-4xl font-bold text-ink mb-6">Who We Are</h2>
+                    <p className="text-muted text-lg leading-relaxed max-w-3xl mx-auto">
                         AutoSphere is a premium automotive service center established in 1998.
                         We specialise in precision diagnostics, performance tuning, and full vehicle maintenance —
                         combining race-grade technology with genuine craftsmanship.
@@ -149,21 +149,21 @@ const About: React.FC = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: i * 0.1 }}
-                            className="glass-card p-6 text-center"
+                            className="panel p-6 text-center"
                         >
                             <div className="text-3xl font-bold text-primary mb-1">{s.value}</div>
-                            <div className="text-white/40 text-sm uppercase tracking-widest">{s.label}</div>
+                            <div className="text-muted text-sm uppercase tracking-[0.08em]">{s.label}</div>
                         </motion.div>
                     ))}
                 </div>
             </section>
 
             {/* ── Our Philosophy ── */}
-            <section className="max-w-7xl mx-auto px-4 pb-28">
-                <div className="glass-card border-primary/20 p-10 md:p-16 relative overflow-hidden">
+            <section className="wrap pb-28">
+                <div className="panel border-forest p-10 md:p-16 relative overflow-hidden">
                     {/* decorative accent */}
-                    <div className="absolute -top-24 -right-24 w-72 h-72 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-                    <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute -top-24 -right-24 w-72 h-72 bg-forest-pale rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-forest-pale rounded-full blur-3xl pointer-events-none" />
 
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -172,20 +172,20 @@ const About: React.FC = () => {
                         className="relative z-10 max-w-4xl"
                     >
                         <span className="text-primary text-xs font-bold uppercase tracking-[0.25em] mb-4 block">Our Philosophy</span>
-                        <h2 className="text-3xl md:text-5xl font-bold text-white leading-tight mb-8">
+                        <h2 className="text-3xl md:text-5xl font-bold text-ink leading-tight mb-8">
                             "We don't just service vehicles.<br />
                             <span className="text-primary">We restore confidence."</span>
                         </h2>
-                        <p className="text-white/50 text-lg leading-relaxed mb-6">
+                        <p className="text-muted text-lg leading-relaxed mb-6">
                             The automotive industry has long operated on opacity — vague estimates, unnecessary upsells,
                             and a culture that keeps customers in the dark. AutoSphere was built as a direct response to that.
                         </p>
-                        <p className="text-white/50 text-lg leading-relaxed mb-6">
+                        <p className="text-muted text-lg leading-relaxed mb-6">
                             From day one, our model has been radical transparency: you see every diagnostic reading,
                             every part replaced, every torque spec hit. We share the data because we have nothing to hide —
                             and because an informed customer is a loyal customer.
                         </p>
-                        <p className="text-white/50 text-lg leading-relaxed">
+                        <p className="text-muted text-lg leading-relaxed">
                             Technical excellence is a given here. What sets AutoSphere apart is the belief that a service centre
                             should feel like a trusted partner, not a transaction.
                         </p>
@@ -201,13 +201,13 @@ const About: React.FC = () => {
                     viewport={{ once: true }}
                     className="text-center mb-16"
                 >
-                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">A Quarter-Century of Progress</h2>
-                    <p className="text-white/40 max-w-xl mx-auto">Every milestone was earned, not given. Here's how we got here.</p>
+                    <h2 className="text-3xl md:text-4xl font-bold text-ink mb-4">A Quarter-Century of Progress</h2>
+                    <p className="text-muted max-w-xl mx-auto">Every milestone was earned, not given. Here's how we got here.</p>
                 </motion.div>
 
-                <div className="relative">
+                <div className="relative overflow-x-clip">
                     {/* vertical line */}
-                    <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-px bg-white/10 md:-translate-x-1/2" />
+                    <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-px bg-sand-deep md:-translate-x-1/2" />
 
                     <div className="space-y-12">
                         {TIMELINE.map((item, i) => {
@@ -219,22 +219,22 @@ const About: React.FC = () => {
                                     whileInView={{ opacity: 1, x: 0 }}
                                     viewport={{ once: true }}
                                     transition={{ delay: i * 0.08 }}
-                                    className={`relative flex flex-col md:flex-row ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'} gap-8 md:gap-12 items-start md:items-center`}
+                                    className={`relative flex flex-col md:flex-row ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'} gap-8 md:gap-0 items-start md:items-center`}
                                 >
                                     {/* dot */}
                                     <div className="absolute left-4 md:left-1/2 w-3 h-3 rounded-full bg-primary md:-translate-x-1/2 mt-1 md:mt-0 ring-4 ring-primary/20" />
 
                                     {/* year label */}
                                     <div className={`hidden md:flex w-1/2 ${isEven ? 'justify-end pr-10' : 'justify-start pl-10'}`}>
-                                        <span className="text-4xl font-black text-white/10 select-none">{item.year}</span>
+                                        <span className="text-4xl font-semibold text-faint select-none">{item.year}</span>
                                     </div>
 
                                     {/* card */}
-                                    <div className={`ml-12 md:ml-0 w-full md:w-1/2 ${isEven ? 'md:pl-10' : 'md:pr-10'}`}>
-                                        <div className="glass-card p-6 hover:border-primary/30 transition-colors">
+                                    <div className={`ml-12 md:ml-0 w-[calc(100%-3rem)] md:w-1/2 ${isEven ? 'md:pl-10' : 'md:pr-10'}`}>
+                                        <div className="panel p-6 hover:border-forest transition-colors">
                                             <div className="text-primary text-xs font-bold uppercase tracking-wider mb-2 md:hidden">{item.year}</div>
-                                            <h3 className="text-white font-bold text-lg mb-2">{item.title}</h3>
-                                            <p className="text-white/40 text-sm leading-relaxed">{item.desc}</p>
+                                            <h3 className="text-ink font-bold text-lg mb-2">{item.title}</h3>
+                                            <p className="text-muted text-sm leading-relaxed">{item.desc}</p>
                                         </div>
                                     </div>
                                 </motion.div>
@@ -252,8 +252,8 @@ const About: React.FC = () => {
                     viewport={{ once: true }}
                     className="text-center mb-14"
                 >
-                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">What We Stand For</h2>
-                    <p className="text-white/40 max-w-xl mx-auto">Six commitments that define every job we touch.</p>
+                    <h2 className="text-3xl md:text-4xl font-bold text-ink mb-4">What We Stand For</h2>
+                    <p className="text-muted max-w-xl mx-auto">Six commitments that define every job we touch.</p>
                 </motion.div>
 
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -264,14 +264,14 @@ const About: React.FC = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: i * 0.08 }}
-                            className="glass-card p-6 flex gap-4 items-start hover:border-primary/30 transition-colors"
+                            className="panel p-6 flex gap-4 items-start hover:border-forest transition-colors"
                         >
-                            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <div className="w-10 h-10 bg-forest-pale rounded-sm flex items-center justify-center flex-shrink-0">
                                 <v.icon size={20} className="text-primary" />
                             </div>
                             <div>
-                                <h3 className="text-white font-semibold mb-1">{v.title}</h3>
-                                <p className="text-white/40 text-sm leading-relaxed">{v.desc}</p>
+                                <h3 className="text-ink font-semibold mb-1">{v.title}</h3>
+                                <p className="text-muted text-sm leading-relaxed">{v.desc}</p>
                             </div>
                         </motion.div>
                     ))}
@@ -279,15 +279,15 @@ const About: React.FC = () => {
             </section>
 
             {/* ── Facility Highlights ── */}
-            <section className="max-w-7xl mx-auto px-4 pb-28">
+            <section className="wrap pb-28">
                 <motion.div
                     initial={{ opacity: 0, y: 16 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     className="text-center mb-14"
                 >
-                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Inside the Workshop</h2>
-                    <p className="text-white/40 max-w-2xl mx-auto">
+                    <h2 className="text-3xl md:text-4xl font-bold text-ink mb-4">Inside the Workshop</h2>
+                    <p className="text-muted max-w-2xl mx-auto">
                         Our facility is engineered to the same standard we hold our technicians — the best available.
                     </p>
                 </motion.div>
@@ -300,13 +300,13 @@ const About: React.FC = () => {
                             whileInView={{ opacity: 1, scale: 1 }}
                             viewport={{ once: true }}
                             transition={{ delay: i * 0.08 }}
-                            className="glass-card p-7 group hover:border-primary/30 transition-all hover:-translate-y-1 duration-300"
+                            className="panel p-7 group hover:border-forest transition-colors"
                         >
-                            <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-primary/20 transition-colors">
+                            <div className="w-12 h-12 bg-forest-pale rounded-sm flex items-center justify-center mb-5 group-hover:bg-forest-pale transition-colors">
                                 <f.icon size={22} className="text-primary" />
                             </div>
-                            <h3 className="text-white font-bold text-lg mb-2">{f.title}</h3>
-                            <p className="text-white/40 text-sm leading-relaxed">{f.desc}</p>
+                            <h3 className="text-ink font-bold text-lg mb-2">{f.title}</h3>
+                            <p className="text-muted text-sm leading-relaxed">{f.desc}</p>
                         </motion.div>
                     ))}
                 </div>
@@ -320,8 +320,8 @@ const About: React.FC = () => {
                     viewport={{ once: true }}
                     className="text-center mb-14"
                 >
-                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">The Minds Behind AutoSphere</h2>
-                    <p className="text-white/40 max-w-xl mx-auto">Leadership built on decades of engineering conviction and zero tolerance for average.</p>
+                    <h2 className="text-3xl md:text-4xl font-bold text-ink mb-4">The Minds Behind AutoSphere</h2>
+                    <p className="text-muted max-w-xl mx-auto">Leadership built on decades of engineering conviction and zero tolerance for average.</p>
                 </motion.div>
 
                 <div className="grid md:grid-cols-3 gap-8">
@@ -332,7 +332,7 @@ const About: React.FC = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: i * 0.12 }}
-                            className="glass-card overflow-hidden group hover:border-primary/30 transition-all"
+                            className="panel overflow-hidden group hover:border-forest transition-all"
                         >
                             {/* photo */}
                             <div className="relative h-52 overflow-hidden">
@@ -341,17 +341,17 @@ const About: React.FC = () => {
                                     alt={person.name}
                                     className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-secondary via-secondary/40 to-transparent" />
-                                <div className="absolute bottom-4 left-4">
-                                    <div className="text-lg font-bold text-white">{person.name}</div>
-                                    <div className="text-primary text-xs font-bold uppercase tracking-widest">{person.role}</div>
+                                <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/35 to-transparent" aria-hidden="true" />
+                                <div className="absolute bottom-4 left-4 right-4">
+                                    <div className="title-md text-paper">{person.name}</div>
+                                    <div className="spec-label mt-0.5 text-paper/80">{person.role}</div>
                                 </div>
                             </div>
 
                             {/* body */}
                             <div className="p-6">
                                 <p className="text-primary/80 text-sm italic mb-4 leading-relaxed">{person.quote}</p>
-                                <p className="text-white/40 text-sm leading-relaxed">{person.bio}</p>
+                                <p className="text-muted text-sm leading-relaxed">{person.bio}</p>
                             </div>
                         </motion.div>
                     ))}
@@ -366,8 +366,8 @@ const About: React.FC = () => {
                     viewport={{ once: true }}
                     className="text-center mb-14"
                 >
-                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Beyond the Workshop</h2>
-                    <p className="text-white/40 max-w-xl mx-auto">
+                    <h2 className="text-3xl md:text-4xl font-bold text-ink mb-4">Beyond the Workshop</h2>
+                    <p className="text-muted max-w-xl mx-auto">
                         AutoSphere believes that technical excellence carries a social responsibility.
                         Here's how we give back.
                     </p>
@@ -381,48 +381,62 @@ const About: React.FC = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: i * 0.1 }}
-                            className="glass-card p-7 flex flex-col items-center text-center hover:border-primary/30 transition-colors"
+                            className="panel p-7 flex flex-col items-center text-center hover:border-forest transition-colors"
                         >
-                            <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
+                            <div className="w-12 h-12 bg-forest-pale rounded-sm flex items-center justify-center mb-4">
                                 <c.icon size={22} className="text-primary" />
                             </div>
-                            <div className="text-3xl font-black text-primary mb-2">{c.stat}</div>
-                            <p className="text-white/40 text-xs leading-relaxed">{c.label}</p>
+                            <div className="text-3xl font-semibold text-primary mb-2">{c.stat}</div>
+                            <p className="text-muted text-xs leading-relaxed">{c.label}</p>
                         </motion.div>
                     ))}
                 </div>
             </section>
 
             {/* ── Visit Us ── */}
-            <section className="max-w-4xl mx-auto px-4">
+            <section className="wrap-tight">
                 <motion.div
                     initial={{ opacity: 0, y: 16 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className="glass-card p-8 flex flex-col md:flex-row items-center gap-8 border-primary/20"
+                    className="panel p-8 flex flex-col md:flex-row items-center gap-8 border-forest"
                 >
-                    <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center flex-shrink-0">
+                    <div className="w-16 h-16 bg-forest-pale rounded-sm flex items-center justify-center flex-shrink-0">
                         <MapPin size={32} className="text-primary" />
                     </div>
                     <div className="text-center md:text-left">
-                        <h3 className="text-xl font-bold text-white mb-1">Visit Our Facility</h3>
-                        <p className="text-white/50 text-sm">AutoSphere Service Center · Open Mon–Sat, 8am–7pm</p>
+                        <h3 className="title-md">Visit the workshop</h3>
+                        <p className="mt-1 text-[0.9375rem] text-muted">
+                            Mon–Fri 8:30–19:00 · Sat 9:00–17:00 · Sunday closed
+                        </p>
                         <div className="flex flex-wrap gap-3 mt-2 justify-center md:justify-start">
-                            <span className="flex items-center gap-1 text-xs text-white/40">
+                            <span className="flex items-center gap-1 text-xs text-muted">
                                 <CheckCircle size={12} className="text-primary" /> Free parking
                             </span>
-                            <span className="flex items-center gap-1 text-xs text-white/40">
+                            <span className="flex items-center gap-1 text-xs text-muted">
                                 <CheckCircle size={12} className="text-primary" /> Accessible entrance
                             </span>
-                            <span className="flex items-center gap-1 text-xs text-white/40">
+                            <span className="flex items-center gap-1 text-xs text-muted">
                                 <CheckCircle size={12} className="text-primary" /> EV charging on-site
                             </span>
                         </div>
-                        <p className="text-primary text-sm mt-2 font-medium">123 Performance Drive, Motorway District</p>
+                        <p className="mt-2 text-[0.9375rem] font-medium text-ink-soft">
+                            Plot 14, MIDC Road 2, Andheri East, Mumbai 400093
+                        </p>
                     </div>
-                    <div className="md:ml-auto flex flex-col sm:flex-row w-full md:w-auto gap-3 mt-4 md:mt-0">
-                        <button className="btn-primary w-full sm:w-auto px-6 py-2 text-sm">Get Directions</button>
-                        <button className="btn-secondary w-full sm:w-auto px-6 py-2 text-sm">Call Now</button>
+                    {/* Both of these were inert buttons. Real links now. */}
+                    <div className="mt-4 flex w-full flex-col gap-3 sm:flex-row md:ml-auto md:mt-0 md:w-auto">
+                        <a
+                            href="https://maps.google.com/?q=MIDC+Road+2,+Andheri+East,+Mumbai+400093"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn-primary w-full px-6 py-2.5 text-sm sm:w-auto"
+                        >
+                            Open in Maps
+                        </a>
+                        <a href="tel:+912244881200" className="btn-secondary w-full px-6 py-2.5 text-sm sm:w-auto">
+                            +91 22 4488 1200
+                        </a>
                     </div>
                 </motion.div>
             </section>

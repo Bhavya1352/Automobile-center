@@ -1,225 +1,532 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Manrope:wght@400..800&display=swap');
 
 @import "tailwindcss";
 
-/* Navbar Styles */
-.navbar-container {
-  @apply fixed top-0 start-0 end-0 z-50 py-3 md:py-10;
-}
-
-.navbar-wrapper {
-  @apply max-w-7xl mx-auto px-3 md:px-6;
-}
-
-.navbar-content {
-  @apply flex items-center justify-between h-16 md:h-20 px-4 md:px-8 rounded-2xl md:rounded-[2.5rem] bg-black/40 backdrop-blur-3xl border border-white/5 shadow-2xl;
-}
-
-.navbar-logo {
-  @apply flex items-center gap-2;
-}
-
-.navbar-logo-icon {
-  @apply w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 p-2 flex items-center justify-center transition-transform;
-  box-shadow: 0 0 25px rgba(16, 185, 129, 0.3), inset 0 0 15px rgba(16, 185, 129, 0.1);
-}
-
-.navbar-logo:hover .navbar-logo-icon {
-  @apply rotate-12;
-}
-
-.navbar-logo-text {
-  @apply hidden sm:inline text-xl font-outfit font-black text-white italic tracking-tighter;
-}
-
-.navbar-links {
-  @apply hidden md:flex items-center gap-10;
-}
-
-.navbar-dropdown {
-  @apply relative;
-}
-
-.navbar-dropdown-button {
-  @apply flex items-center gap-1 text-[11px] font-black uppercase tracking-widest text-white/50 hover:text-white transition-colors py-2;
-}
-
-.navbar-dropdown-menu {
-  @apply absolute top-full start-1/2 -translate-x-1/2 rtl:translate-x-1/2 mt-4 w-72 p-4 rounded-[2rem] bg-[#0a0c10] border border-white/10 backdrop-blur-2xl;
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-}
-
-.navbar-dropdown-item {
-  @apply flex items-center gap-4 p-3 rounded-2xl hover:bg-white/5 transition-all;
-}
-
-.navbar-dropdown-icon {
-  @apply w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 transition-colors;
-}
-
-.navbar-dropdown-item:hover .navbar-dropdown-icon {
-  @apply text-purple-500;
-}
-
-.navbar-dropdown-title {
-  @apply text-[11px] font-black uppercase tracking-widest text-white transition-colors;
-}
-
-.navbar-dropdown-item:hover .navbar-dropdown-title {
-  @apply text-purple-500;
-}
-
-.navbar-dropdown-subtitle {
-  @apply text-[9px] font-medium text-white/30 italic;
-}
-
-.navbar-link {
-  @apply text-[11px] font-black uppercase tracking-widest text-white/50 hover:text-white transition-colors;
-}
-
-.navbar-actions {
-  @apply flex items-center gap-2 md:gap-6;
-}
-
-.navbar-login {
-  @apply hidden lg:block text-[11px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors;
-}
-
-.navbar-cta {
-  @apply hidden sm:inline-block px-4 md:px-6 py-2.5 md:py-3 rounded-xl bg-white text-black text-[10px] md:text-[11px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all;
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-}
-
-.navbar-toggle-btn {
-  @apply w-9 h-9 md:w-10 md:h-10 rounded-lg md:rounded-xl border border-white/10 bg-white/5 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all;
-}
-
-.navbar-mobile-btn {
-  @apply md:hidden flex flex-col gap-1.5 p-2;
-}
-
-.navbar-mobile-menu {
-  @apply md:hidden mt-4 overflow-hidden rounded-[2.5rem] bg-black/80 backdrop-blur-3xl border border-white/5 shadow-2xl;
-}
-
-.navbar-mobile-content {
-  @apply p-8 flex flex-col gap-8;
-}
-
-.navbar-mobile-section {
-  @apply space-y-4;
-}
-
-.navbar-mobile-heading {
-  @apply text-[10px] font-black text-white/30 uppercase tracking-[0.2em];
-}
-
-.navbar-mobile-grid {
-  @apply grid grid-cols-1 gap-2;
-}
-
-.navbar-mobile-item {
-  @apply flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5;
-}
-
-.navbar-mobile-link {
-  @apply p-4 rounded-2xl bg-white/5 border border-white/5 text-[11px] font-black uppercase tracking-widest text-white;
-}
-
-.navbar-mobile-auth {
-  @apply flex gap-4 pt-4 border-t border-white/5;
-}
-
-.navbar-mobile-login {
-  @apply flex-1 py-4 text-center rounded-2xl border border-white/10 text-[11px] font-black uppercase tracking-widest text-white;
-}
-
-.navbar-mobile-signup {
-  @apply flex-1 py-4 text-center rounded-2xl bg-white text-black text-[11px] font-black uppercase tracking-widest;
-}
-
-.chevron-rotate {
-  @apply w-3 h-3 transition-transform duration-300;
-}
-
-.hamburger-line {
-  @apply w-6 h-0.5 bg-white/50 transition-colors;
-}
-
-.navbar-mobile-btn:hover .hamburger-line {
-  @apply bg-white;
-}
+/* ============================================================
+   AutoSphere — visual system
+   Editorial / premium automotive. Light, warm, typographic.
+   Rules: hairline borders over floating cards. Photography and
+   type carry the page. No glass, no glow, no gradients.
+   ============================================================ */
 
 @theme {
-  --color-primary: #10b981;
-  --color-secondary: #0a0a0a;
-  --color-accent: #fbbf24;
-  --color-bg-main: #000000;
-  --color-card-bg: rgba(255, 255, 255, 0.03);
+  /* ── Surfaces ─────────────────────────────────────────── */
+  --color-paper: #f5f3ee;
+  /* warm ivory — the page */
+  --color-surface: #ffffff;
+  /* raised panels, tables */
+  --color-sand: #ece9e1;
+  /* recessed bands, inputs */
+  --color-sand-deep: #e2ded4;
 
-  --font-outfit: "Outfit", sans-serif;
-  --font-inter: "Inter", sans-serif;
+  /* ── Ink ──────────────────────────────────────────────── */
+  --color-ink: #171a18;
+  --color-ink-soft: #3b3f3c;
+  --color-muted: #666862;
+  /* Darkened from #96978f: at 12px (.spec-label) the old value gave
+     2.4:1 on sand and failed WCAG AA. This clears 4.5:1 on paper,
+     sand and surface. */
+  --color-faint: #686960;
+
+  /* ── Lines ────────────────────────────────────────────── */
+  --color-line: #d9d7d0;
+  --color-line-soft: #e5e2db;
+  --color-line-strong: #c3c0b6;
+
+  /* ── Brand ────────────────────────────────────────────── */
+  --color-forest: #183f35;
+  --color-forest-mid: #27564a;
+  --color-forest-pale: #e8eeeb;
+  --color-clay: #c76b32;
+  /* The brand clay is 3.4:1 on paper — fine as a fill, border or
+     large type, below AA as small text. clay-ink is the text-only
+     variant; same hue, 4.9:1. */
+  --color-clay-ink: #a55320;
+  --color-clay-pale: #f6ece4;
+
+  /* Back-compat aliases so any legacy utility still resolves
+     to the new palette instead of a dark/neon value. */
+  --color-primary: #183f35;
+  --color-secondary: #f5f3ee;
+  --color-accent: #c76b32;
+  --color-bg-main: #f5f3ee;
+
+  /* ── Type ─────────────────────────────────────────────── */
+  /* Two families only. DM Serif Display is a display face with a
+     single weight (400) — never ask it for bold, or the browser
+     synthesises a smeared fake. Manrope carries everything else. */
+  --font-display: "DM Serif Display", "Iowan Old Style", Georgia, serif;
+  --font-sans: "Manrope", system-ui, -apple-system, sans-serif;
+  /* Figures align via tabular-nums rather than a third, monospaced
+     family; `font-mono` stays mapped so stray legacy usages still
+     render in the brand face. */
+  --font-mono: "Manrope", system-ui, sans-serif;
+
+  /* ── Radii — deliberately small ───────────────────────── */
+  --radius-xs: 1px;
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
 }
 
 @layer base {
-  body {
-    @apply bg-secondary text-white font-inter antialiased;
-    overflow-x: hidden;
-    /* Premium background subtle radial glow */
-    background-image:
-      radial-gradient(circle at 15% 50%, rgba(16, 185, 129, 0.03) 0%, transparent 50%),
-      radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.04) 0%, transparent 50%);
-    background-attachment: fixed;
+
+  html {
+    -webkit-text-size-adjust: 100%;
   }
 
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    /* 1rem, comfortably inside the 0.95–1.05rem body range */
+    font-weight: 400;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* Headings default to the sans. The serif is opt-in, applied by
+     the .display-* classes, so it never leaks onto every small
+     heading and label on the page. */
   h1,
   h2,
   h3,
   h4,
   h5,
   h6 {
-    @apply font-outfit tracking-tight;
-    /* Tighter tracking for premium feel */
+    font-family: var(--font-sans);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+    color: var(--color-ink);
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Visible, branded focus ring — replaces the old
+     focus:outline-none with nothing behind it. */
+  :focus-visible {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 2px;
+    border-radius: 1px;
+  }
+
+  ::selection {
+    background: var(--color-forest);
+    color: var(--color-paper);
   }
 }
 
 @layer components {
-  .glass-card {
-    @apply bg-white/[0.02] border border-white/[0.06] backdrop-blur-xl rounded-2xl transition-all duration-500 relative overflow-hidden;
-    /* Inner pseudo-border for the glass edge catching light */
-    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 4px 20px -5px rgba(0, 0, 0, 0.3);
+
+  /* ── Measure ──────────────────────────────────────────── */
+  .wrap {
+    width: 100%;
+    max-width: 78rem;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
   }
 
+  @media (min-width: 768px) {
+    .wrap {
+      padding-inline: 2.5rem;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .wrap {
+      padding-inline: 3.5rem;
+    }
+  }
+
+  .wrap-tight {
+    width: 100%;
+    max-width: 52rem;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .wrap-tight {
+      padding-inline: 2.5rem;
+    }
+  }
+
+  /* ── Editorial scale — DM Serif Display ───────────────────
+     Reserved for the hero, main section headings and genuine
+     editorial statements. Weight is always 400: the family has
+     no other, and asking for 600 produces a synthetic bold. */
+  .display-xl {
+    font-family: var(--font-display);
+    font-weight: 400;
+    /* Sized so "Precision service." holds a single line inside the
+       six-column hero measure at every breakpoint; DM Serif Display
+       sets noticeably wider than the face it replaced. */
+    font-size: clamp(2.75rem, 5vw, 4.5rem);
+    line-height: 1.04;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  /* Below ~480px the 2.75rem floor is wider than the measure, and the
+     hero's first line breaks mid-phrase. The vw term and the 4.5rem
+     ceiling are untouched, so nothing above this width changes. */
+  @media (max-width: 30rem) {
+    .display-xl {
+      font-size: 2.375rem;
+    }
+  }
+
+  .display-lg {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(2rem, 3vw, 3.25rem);
+    line-height: 1.1;
+    letter-spacing: -0.012em;
+    text-wrap: balance;
+  }
+
+  .display-md {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(1.625rem, 2.2vw, 2.25rem);
+    line-height: 1.18;
+    letter-spacing: -0.01em;
+  }
+
+  /* A pull-quote or short editorial statement set in the serif.
+     Below about 1.5rem DM Serif Display stops reading as display
+     type, so this is the floor for the family. */
+  .quote-serif {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(1.375rem, 1.8vw, 1.625rem);
+    line-height: 1.32;
+    letter-spacing: -0.008em;
+  }
+
+  /* ── UI scale — Manrope ───────────────────────────────────
+     Card headings, component titles and everything interactive. */
+  .title-lg {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 1.25rem;
+    line-height: 1.32;
+    letter-spacing: -0.014em;
+    color: var(--color-ink);
+  }
+
+  .title-md {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 1.125rem;
+    line-height: 1.36;
+    letter-spacing: -0.012em;
+    color: var(--color-ink);
+  }
+
+  .title-sm {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1.42;
+    letter-spacing: -0.008em;
+    color: var(--color-ink);
+  }
+
+  /* Figures: prices, odometer readings, counts. Tabular so columns
+     of numbers line up without reaching for a monospaced family. */
+  .stat {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-ink);
+  }
+
+  /* Body copy that sits under a display heading */
+  .lede {
+    font-size: 1.0625rem;
+    line-height: 1.66;
+    font-weight: 400;
+    color: var(--color-muted);
+  }
+
+  @media (min-width: 768px) {
+    .lede {
+      font-size: 1.125rem;
+    }
+  }
+
+  /* ── Labels and metadata ──────────────────────────────────
+     Restrained: 0.75rem, weight 600, modest tracking. Uppercase
+     is kept only for data-field labels in the service panels,
+     where it reads as a form label rather than decoration. */
+  .spec-label {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
+    line-height: 1.4;
+    color: var(--color-faint);
+  }
+
+  /* Sentence-case sibling for navigation and footer headings,
+     where shouting is not warranted. */
+  .label {
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.4;
+    color: var(--color-ink);
+  }
+
+  .meta {
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-muted);
+  }
+
+  .spec-value {
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Buttons ──────────────────────────────────────────── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    line-height: 1;
+    padding: 0.875rem 1.5rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  .btn-solid {
+    background: var(--color-forest);
+    color: #f5f3ee;
+  }
+
+  .btn-solid:hover {
+    background: #0f2d26;
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--color-ink);
+    border-color: var(--color-line-strong);
+  }
+
+  .btn-outline:hover {
+    border-color: var(--color-ink);
+    background: rgba(23, 26, 24, .03);
+  }
+
+  .btn-clay {
+    background: var(--color-clay);
+    color: #fff;
+  }
+
+  .btn-clay:hover {
+    background: #b25d29;
+  }
+
+  .btn-on-dark {
+    background: var(--color-paper);
+    color: var(--color-forest);
+  }
+
+  .btn-on-dark:hover {
+    background: #fff;
+  }
+
+  /* Text CTA — the secondary action, an underlined link */
+  .link-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    color: var(--color-ink);
+    padding-bottom: 2px;
+    border-bottom: 1px solid var(--color-line-strong);
+    transition: border-color .18s ease, color .18s ease;
+  }
+
+  .link-cta:hover {
+    color: var(--color-clay);
+    border-color: var(--color-clay);
+  }
+
+  /* Legacy button classes, remapped — no glow, no pill */
   .btn-primary {
-    @apply bg-primary hover:bg-emerald-400 text-secondary font-bold px-7 py-3 rounded-full transition-all duration-300 active:scale-95 hover:-translate-y-0.5;
-    box-shadow: 0 0 0 rgba(16, 185, 129, 0);
-    transition: box-shadow 0.3s ease, transform 0.3s ease, background-color 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    background: var(--color-forest);
+    color: #f5f3ee;
+    font-weight: 600;
+    padding: .875rem 1.5rem;
+    border-radius: var(--radius-sm);
+    transition: background-color .18s ease;
   }
 
   .btn-primary:hover {
-    box-shadow: 0 0 25px rgba(16, 185, 129, 0.4);
+    background: #0f2d26;
   }
 
   .btn-secondary {
-    @apply bg-transparent border border-white/10 hover:border-primary/50 text-white hover:bg-white/[0.02] font-semibold px-7 py-3 rounded-full transition-all duration-300 active:scale-95 hover:-translate-y-0.5;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    background: transparent;
+    color: var(--color-ink);
+    border: 1px solid var(--color-line-strong);
+    font-weight: 600;
+    padding: .875rem 1.5rem;
+    border-radius: var(--radius-sm);
+    transition: border-color .18s ease, background-color .18s ease;
   }
 
   .btn-secondary:hover {
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
+    border-color: var(--color-ink);
+    background: rgba(23, 26, 24, .03);
   }
 
-  .neon-glow {
-    box-shadow: 0 0 25px rgba(16, 185, 129, 0.3), inset 0 0 15px rgba(16, 185, 129, 0.1);
+  /* The dense in-card and in-dialog buttons resolve to 36-40px, under
+     the 44px a finger needs. Floored on touch pointers only, so no
+     desktop metric moves. */
+  @media (pointer: coarse) {
+
+    .btn,
+    .btn-primary,
+    .btn-secondary {
+      min-height: 2.75rem;
+    }
   }
 
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-br from-white via-white/90 to-white/40;
+  /* ── Panels ───────────────────────────────────────────────
+     A panel is a bordered area of surface. It does not float,
+     glow, or blur. Replaces .glass-card everywhere. */
+  .panel {
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-sm);
   }
 
+  .panel-sand {
+    background: var(--color-sand);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-sm);
+  }
+
+  /* ── Form fields ──────────────────────────────────────── */
+  .field {
+    width: 100%;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 0.875rem;
+    font-size: 0.9375rem;
+    color: var(--color-ink);
+    transition: border-color .18s ease;
+  }
+
+  .field::placeholder {
+    color: var(--color-faint);
+  }
+
+  .field:focus {
+    border-color: var(--color-forest);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(24, 63, 53, .09);
+  }
+
+  .field-label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-ink-soft);
+    margin-bottom: 0.375rem;
+  }
+
+  /* ── Rules ────────────────────────────────────────────── */
+  .rule {
+    border: 0;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .rule-strong {
+    border: 0;
+    border-top: 1px solid var(--color-ink);
+  }
+
+  /* Section rhythm — varied, not one repeated value */
+  .section {
+    padding-block: clamp(4rem, 9vw, 7.5rem);
+  }
+
+  .section-tight {
+    padding-block: clamp(2.75rem, 5vw, 4rem);
+  }
+
+  /* ── Images ───────────────────────────────────────────── */
+  .photo {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: var(--color-sand);
+  }
+
+  .photo-frame {
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background: var(--color-sand);
+  }
+
+  /* Horizontally scrolling strips (the dashboard tab bar) keep the
+     scroll but drop the bar — it sat across the tab underline.
+     DashboardTabs already used this class; it was never defined. */
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ── Marquee (partner wordmarks) ──────────────────────── */
   .animate-marquee {
     display: flex;
     width: max-content;
-    animation: marquee 30s linear infinite;
+    animation: marquee 44s linear infinite;
   }
 
   @keyframes marquee {
@@ -233,8 +540,18 @@
   }
 }
 
-/*
-  Globe button is cosmetic only — it does NOT change layout direction.
-  body.rtl-mode class is applied by LanguageContext but triggers no layout changes.
-  The body's direction is locked to LTR above.
-*/
+@media (prefers-reduced-motion: reduce) {
+
+  .animate-marquee {
+    animation: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import PageHero from '../components/PageHero';
 import {
     ArrowRight, Wrench, Shield, Zap, Heart, TrendingUp,
@@ -99,22 +100,22 @@ const Careers: React.FC = () => {
                 breadcrumb={['Home', 'Careers']}
             />
 
-            <section className="max-w-7xl mx-auto px-4">
+            <section className="wrap">
 
                 {/* Culture Banner */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className="glass-card border-primary/20 p-10 md:p-14 mb-28 relative overflow-hidden"
+                    className="panel border-forest p-10 md:p-14 mb-28 relative overflow-hidden"
                 >
-                    <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute -top-20 -right-20 w-64 h-64 bg-forest-pale rounded-full blur-3xl pointer-events-none" />
                     <div className="relative z-10 max-w-3xl">
                         <span className="text-primary text-xs font-bold uppercase tracking-[0.25em] mb-4 block">Why AutoSphere</span>
-                        <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+                        <h2 className="text-3xl md:text-4xl font-bold text-ink mb-6">
                             We invest in people the same way we invest in tools — <span className="text-primary">without compromise.</span>
                         </h2>
-                        <p className="text-white/40 text-lg leading-relaxed">
+                        <p className="text-muted text-lg leading-relaxed">
                             The automotive world moves fast. Our team stays ahead through continuous training, access to cutting-edge equipment,
                             and a culture that rewards mastery over mediocrity. If you're the best at what you do — or you intend to be — this is your place.
                         </p>
@@ -123,8 +124,8 @@ const Careers: React.FC = () => {
 
                 {/* Current Opportunities */}
                 <div className="text-center space-y-4 mb-14">
-                    <h2 className="text-4xl font-bold text-white">Current Opportunities</h2>
-                    <p className="text-white/40 max-w-2xl mx-auto">Step into the future of high-performance automotive maintenance.</p>
+                    <h2 className="text-4xl font-bold text-ink">Current Opportunities</h2>
+                    <p className="text-muted max-w-2xl mx-auto">Step into the future of high-performance automotive maintenance.</p>
                 </div>
 
                 <div className="space-y-6 mb-28">
@@ -135,28 +136,28 @@ const Careers: React.FC = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: i * 0.08 }}
-                            className="glass-card p-6 md:p-8 group hover:border-primary/50 transition-colors cursor-pointer"
+                            className="panel p-6 md:p-8 group hover:border-forest transition-colors cursor-pointer"
                         >
                             <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
                                 <div className="flex items-start gap-6">
-                                    <div className="hidden sm:flex w-14 h-14 bg-white/5 rounded-2xl items-center justify-center flex-shrink-0 group-hover:bg-primary/10 transition-colors">
-                                        <job.icon size={26} className="text-white/40 group-hover:text-primary transition-colors" />
+                                    <div className="hidden sm:flex w-14 h-14 bg-sand rounded-sm items-center justify-center flex-shrink-0 group-hover:bg-forest-pale transition-colors">
+                                        <job.icon size={26} className="text-muted group-hover:text-primary transition-colors" />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-primary transition-colors">{job.title}</h3>
-                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/40 mb-3">
+                                        <h3 className="text-xl font-bold text-ink mb-2 group-hover:text-primary transition-colors">{job.title}</h3>
+                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted mb-3">
                                             <span className="font-mono text-primary">{job.dept}</span>
                                             <span>•</span>
                                             <span>{job.type}</span>
                                             <span>•</span>
                                             <span>{job.location}</span>
                                             <span>•</span>
-                                            <span className="text-white/60 font-medium">{job.salary}</span>
+                                            <span className="text-ink-soft font-medium">{job.salary}</span>
                                         </div>
-                                        <p className="text-white/40 text-sm leading-relaxed max-w-2xl mb-4">{job.description}</p>
+                                        <p className="text-muted text-sm leading-relaxed max-w-2xl mb-4">{job.description}</p>
                                         <div className="flex flex-wrap gap-2">
                                             {job.tags.map(tag => (
-                                                <span key={tag} className="text-xs px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 font-mono">
+                                                <span key={tag} className="text-xs px-3 py-1 rounded-full bg-forest-pale text-primary border border-forest font-mono">
                                                     {tag}
                                                 </span>
                                             ))}
@@ -164,10 +165,15 @@ const Careers: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <button className="flex items-center gap-2 text-white hover:text-primary transition-colors focus:outline-none self-start md:self-center flex-shrink-0">
-                                    <span className="font-bold uppercase tracking-wider text-xs">Apply Now</span>
-                                    <ArrowRight size={16} className="group-hover:translate-x-2 rtl:rotate-180 rtl:group-hover:-translate-x-2 transition-transform" />
-                                </button>
+                                {/* Was a button with no handler. */}
+                                <Link
+                                    to="/contact"
+                                    className="link-cta shrink-0 self-start md:self-center"
+                                    aria-label={`Apply for the ${job.title} role`}
+                                >
+                                    Apply
+                                    <ArrowRight size={15} aria-hidden="true" />
+                                </Link>
                             </div>
                         </motion.div>
                     ))}
@@ -180,8 +186,8 @@ const Careers: React.FC = () => {
                     viewport={{ once: true }}
                     className="text-center mb-14"
                 >
-                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">What You Get</h2>
-                    <p className="text-white/40 max-w-xl mx-auto">Exceptional talent deserves exceptional conditions.</p>
+                    <h2 className="text-3xl md:text-4xl font-bold text-ink mb-4">What You Get</h2>
+                    <p className="text-muted max-w-xl mx-auto">Exceptional talent deserves exceptional conditions.</p>
                 </motion.div>
 
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-28">
@@ -192,13 +198,13 @@ const Careers: React.FC = () => {
                             whileInView={{ opacity: 1, scale: 1 }}
                             viewport={{ once: true }}
                             transition={{ delay: i * 0.08 }}
-                            className="glass-card p-7 hover:border-primary/30 transition-all hover:-translate-y-1 duration-300"
+                            className="panel p-7 hover:border-forest transition-colors"
                         >
-                            <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-5">
+                            <div className="w-12 h-12 bg-forest-pale rounded-sm flex items-center justify-center mb-5">
                                 <perk.icon size={22} className="text-primary" />
                             </div>
-                            <h3 className="text-white font-bold mb-2">{perk.title}</h3>
-                            <p className="text-white/40 text-sm leading-relaxed">{perk.desc}</p>
+                            <h3 className="text-ink font-bold mb-2">{perk.title}</h3>
+                            <p className="text-muted text-sm leading-relaxed">{perk.desc}</p>
                         </motion.div>
                     ))}
                 </div>
@@ -210,8 +216,8 @@ const Careers: React.FC = () => {
                     viewport={{ once: true }}
                     className="text-center mb-14"
                 >
-                    <h2 className="text-3xl font-bold text-white mb-4">Our Hiring Process</h2>
-                    <p className="text-white/40 max-w-xl mx-auto">Transparent, fast, and respectful of your time.</p>
+                    <h2 className="text-3xl font-bold text-ink mb-4">Our Hiring Process</h2>
+                    <p className="text-muted max-w-xl mx-auto">Transparent, fast, and respectful of your time.</p>
                 </motion.div>
 
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -222,11 +228,11 @@ const Careers: React.FC = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: i * 0.1 }}
-                            className="glass-card p-7 text-center hover:border-primary/30 transition-colors"
+                            className="panel p-7 text-center hover:border-forest transition-colors"
                         >
-                            <div className="text-5xl font-black text-primary/20 mb-4">{step.step}</div>
-                            <h3 className="text-white font-bold mb-3">{step.title}</h3>
-                            <p className="text-white/40 text-sm leading-relaxed">{step.desc}</p>
+                            <div className="text-5xl font-semibold text-primary/20 mb-4">{step.step}</div>
+                            <h3 className="text-ink font-bold mb-3">{step.title}</h3>
+                            <p className="text-muted text-sm leading-relaxed">{step.desc}</p>
                         </motion.div>
                     ))}
                 </div>

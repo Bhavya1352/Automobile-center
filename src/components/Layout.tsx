@@ -7,16 +7,25 @@ interface LayoutProps {
     showFooter?: boolean;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, showFooter = true }) => {
-    return (
-        <div className="min-h-screen flex flex-col pt-24 md:pt-28">
-            <Navbar />
-            <main className="flex-grow">
-                {children}
-            </main>
-            {showFooter && <Footer />}
-        </div>
-    );
-};
+/**
+ * Layout — owns the offset for the fixed navbar so pages never have
+ * to add their own top padding.
+ */
+const Layout: React.FC<LayoutProps> = ({ children, showFooter = true }) => (
+    <div className="flex min-h-screen flex-col pt-[72px]">
+        {/* Lets keyboard users jump the navigation on every page. */}
+        <a
+            href="#main"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[70] focus:rounded-sm focus:bg-forest focus:px-4 focus:py-2 focus:text-paper"
+        >
+            Skip to content
+        </a>
+        <Navbar />
+        <main id="main" tabIndex={-1} className="flex-grow outline-none">
+            {children}
+        </main>
+        {showFooter && <Footer />}
+    </div>
+);
 
 export default Layout;

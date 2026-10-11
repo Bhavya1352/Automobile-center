@@ -1,405 +1,371 @@
-import React, { useState } from 'react';
+import React from 'react';
 import PageHero from '../components/PageHero';
+import { Field } from '../components/ui/Field';
+import { Accordion } from '../components/ui/Accordion';
+import { useForm } from '../hooks/useForm';
+import { isBlank, isEmail, isPhone } from '../lib/validation';
+import type { FieldErrors } from '../lib/validation';
 import {
-    Mail, Phone, MapPin, Send, Clock,
-    ChevronDown, ChevronUp, MessageSquare, Headphones,
-    AlertTriangle, CheckCircle, Car, Wrench, Zap, Shield
+    Mail, Phone, MapPin, Send, Clock, Headphones,
+    AlertTriangle, CheckCircle, Car, Wrench,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 /* ─── Data ───────────────────────────────────────────────── */
+
+/* Every figure and detail below is one the rest of the site already
+   states. The page previously carried a US placeholder phone number, a
+   placeholder street address and a third, contradictory set of opening
+   hours. The footer is the source of truth for all three. */
+
+const PHONE_DISPLAY = '+91 22 4488 1200';
+const PHONE_HREF = 'tel:+912244881200';
 
 const CONTACT_CHANNELS = [
     {
         icon: Phone,
-        title: 'Direct Line',
-        value: '+1 (555) 012-3456',
-        sub: 'Mon – Sat, 8am – 7pm',
-        cta: 'Call Now',
-        href: 'tel:+15550123456',
+        title: 'Call the centre',
+        value: PHONE_DISPLAY,
+        sub: 'Mon–Fri 8:30–19:00 · Sat 9:00–17:00',
+        cta: 'Call now',
+        href: PHONE_HREF,
     },
     {
         icon: Mail,
-        title: 'Email Support',
+        title: 'Email us',
         value: 'service@autosphere.tech',
-        sub: 'Response within 2 hours',
-        cta: 'Send Email',
+        sub: 'We reply within 2 working hours',
+        cta: 'Send an email',
         href: 'mailto:service@autosphere.tech',
     },
     {
-        icon: MessageSquare,
-        title: 'Live Chat',
-        value: 'Chat with a Technician',
-        sub: 'Available Mon – Fri, 9am – 6pm',
-        cta: 'Open Chat',
-        href: '#',
-    },
-    {
         icon: MapPin,
-        title: 'Visit Us',
-        value: '123 Performance Drive',
-        sub: 'Motorway District, Gear City',
-        cta: 'Get Directions',
-        href: '#',
+        title: 'Visit the workshop',
+        value: 'Plot 14, MIDC Road 2',
+        sub: 'Andheri East, Mumbai 400093',
+        cta: 'Open in Maps',
+        href: 'https://maps.google.com/?q=MIDC+Road+2,+Andheri+East,+Mumbai+400093',
     },
 ];
 
 const RESPONSE_STATS = [
-    { icon: Headphones, stat: '< 2 hrs', label: 'Email response time' },
-    { icon: CheckCircle, stat: '98.4%', label: 'First-contact resolution rate' },
-    { icon: Car, stat: 'Same day', label: 'Appointment availability (urgent)' },
-    { icon: Clock, stat: '6 days', label: 'Service centre open per week' },
+    { icon: Headphones, stat: '2 hrs', label: 'Typical reply to an email enquiry' },
+    { icon: Car, stat: 'Same day', label: 'Usual availability for urgent diagnostics' },
+    { icon: Wrench, stat: 'Four', label: 'Service bays on the floor' },
+    { icon: Clock, stat: 'Six days', label: 'Open Monday to Saturday' },
 ];
 
+/* The six service lines the homepage names, plus the two enquiry
+   routes the form needs. Nothing here is a service we do not run. */
 const SERVICE_OPTIONS = [
-    'Diagnostic Scan',
-    'Performance Tuning / ECU Remap',
-    'Routine Maintenance & Service',
-    'EV / Hybrid Specialist Check',
-    'Suspension & Geometry Setup',
-    'Pre-Purchase Vehicle Inspection',
-    'Fleet Service Enquiry',
-    'Emergency Breakdown Recovery',
-    'Other Technical Inquiry',
+    'Diagnostics',
+    'Periodic maintenance',
+    'Brake service',
+    'AC & cooling',
+    'Performance & ECU',
+    'Detailing',
+    'Pre-purchase inspection',
+    'Something else',
 ];
 
 const FAQS = [
     {
         q: 'How quickly can I get a booking?',
-        a: 'For standard services, most slots are available within 2–3 working days. Urgent diagnostics and emergency work are accommodated same-day where possible — call our direct line to arrange.',
+        a: 'Most standard services have a slot within 2–3 working days. Urgent diagnostics are usually same-day — call the centre to arrange it rather than using the form.',
     },
     {
-        q: 'Do you work on all vehicle makes and brands?',
-        a: 'Yes. AutoSphere is a multi-brand facility with OEM-level scan tools for over 60 manufacturers, including European, Japanese, American, and electric vehicle brands.',
+        q: 'Do you work on all makes?',
+        a: 'Yes. We are an independent multi-brand centre and Bosch-certified, so our scan tools cover the European, Japanese and Indian-market makes we see most. If we cannot diagnose your car properly we will say so rather than guess.',
     },
     {
         q: 'What happens after I submit the contact form?',
         a: 'A service coordinator will review your request and contact you within 2 working hours (Mon–Sat) to confirm your booking details, provide a preliminary quote, and answer any questions.',
     },
     {
-        q: 'Do you offer fleet or corporate service agreements?',
-        a: 'Absolutely. We manage fleets of all sizes under bespoke service contracts — including scheduled maintenance, priority booking, and dedicated account management. Contact us to discuss your requirements.',
+        q: 'Do you take on fleet work?',
+        a: 'We do take on small fleets under a scheduled-maintenance arrangement. Call the centre and ask for a service advisor — it depends on the size of the fleet and what the vehicles need.',
     },
     {
         q: 'Is there a warranty on repairs and services?',
         a: 'Yes. All work carried out at AutoSphere is covered by a comprehensive warranty on both parts and labour. Specific terms vary by service type — ask your coordinator for details.',
     },
     {
-        q: 'Can I wait at the facility during my service?',
-        a: 'Of course. Our client lounge offers high-speed Wi-Fi, specialty coffee, and live workshop display screens so you can stay connected and informed while we work.',
+        q: 'Can I wait while the work is done?',
+        a: 'Yes. There is a waiting area with Wi-Fi and coffee. For anything longer than a couple of hours we will usually suggest you leave the car with us and we will call when it is ready.',
     },
 ];
 
-/* ─── FAQ Item ───────────────────────────────────────────── */
+/* ─── Service request form ───────────────────────────────── */
 
-const FAQItem: React.FC<{ q: string; a: string; index: number }> = ({ q, a, index }) => {
-    const [open, setOpen] = useState(false);
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: index * 0.07 }}
-            className={`glass-card overflow-hidden transition-all ${open ? 'border-primary/30' : 'border-white/5'}`}
-        >
-            <button
-                className="w-full flex items-center justify-between p-6 text-left gap-4"
-                onClick={() => setOpen(o => !o)}
-            >
-                <span className="text-white font-semibold leading-snug">{q}</span>
-                {open
-                    ? <ChevronUp size={18} className="text-primary flex-shrink-0" />
-                    : <ChevronDown size={18} className="text-white/30 flex-shrink-0" />}
-            </button>
-            <AnimatePresence initial={false}>
-                {open && (
-                    <motion.div
-                        key="body"
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.28, ease: 'easeInOut' }}
-                    >
-                        <p className="px-6 pb-6 text-white/40 text-sm leading-relaxed">{a}</p>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </motion.div>
-    );
+interface ServiceRequest {
+    name: string;
+    email: string;
+    phone: string;
+    vehicle: string;
+    service: string;
+    message: string;
+    [key: string]: string;
+}
+
+const EMPTY_REQUEST: ServiceRequest = {
+    name: '', email: '', phone: '', vehicle: '', service: SERVICE_OPTIONS[0], message: '',
 };
 
-/* ─── Main Component ─────────────────────────────────────── */
+function validateRequest(v: ServiceRequest): FieldErrors<ServiceRequest> {
+    const errors: FieldErrors<ServiceRequest> = {};
+    if (isBlank(v.name)) errors.name = 'Please tell us your name.';
+    if (isBlank(v.email)) errors.email = 'We need an email address to reply to.';
+    else if (!isEmail(v.email)) errors.email = 'That does not look like a valid email address.';
+    if (!isBlank(v.phone) && !isPhone(v.phone)) errors.phone = 'Enter a phone number we can reach you on, or leave this blank.';
+    if (isBlank(v.vehicle)) errors.vehicle = 'Tell us the make and model so we can quote accurately.';
+    if (isBlank(v.message)) errors.message = 'Describe the problem or the service you need.';
+    else if (v.message.trim().length < 15) errors.message = 'A little more detail helps us prepare — 15 characters or more.';
+    return errors;
+}
+
+const ServiceRequestForm: React.FC = () => {
+    const form = useForm<ServiceRequest>({
+        initialValues: EMPTY_REQUEST,
+        validate: validateRequest,
+        onSubmit: async () => {
+            // No backend yet: this stands in for POST /api/service-requests
+            // so the component already handles latency and failure.
+            await new Promise<void>((resolve, reject) => {
+                setTimeout(() => (Math.random() < 0.12
+                    ? reject(new Error('We could not send your request just now. Please try again, or call the centre.'))
+                    : resolve()), 900);
+            });
+        },
+    });
+
+    const { values, errors, status, submitError, handleChange, handleBlur, handleSubmit, reset, formRef } = form;
+    const busy = status === 'submitting';
+
+    if (status === 'success') {
+        return (
+            <div className="panel border-line p-6 sm:p-10" role="status">
+                <CheckCircle size={28} className="text-forest" aria-hidden="true" />
+                <h3 className="title-lg mt-4">Request received</h3>
+                <p className="mt-2 text-[0.9375rem] leading-relaxed text-muted">
+                    Thank you, {values.name.split(' ')[0]}. A service advisor will reply to{' '}
+                    <span className="text-ink">{values.email}</span> within two working hours,
+                    Monday to Saturday.
+                </p>
+                <button onClick={reset} className="btn btn-outline mt-6">
+                    Send another request
+                </button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="panel p-6 sm:p-10 border-line">
+            <h3 className="title-lg mb-7">Send a request</h3>
+            <form ref={formRef} className="space-y-5" onSubmit={handleSubmit} noValidate>
+                <div className="grid gap-5 md:grid-cols-2">
+                    <Field
+                        label="Full name" name="name" autoComplete="name"
+                        value={values.name} onChange={handleChange} onBlur={handleBlur}
+                        error={errors.name} disabled={busy}
+                    />
+                    <Field
+                        label="Email address" name="email" type="email" autoComplete="email"
+                        value={values.email} onChange={handleChange} onBlur={handleBlur}
+                        error={errors.email} disabled={busy}
+                    />
+                </div>
+
+                <Field
+                    label="Phone number" name="phone" type="tel" autoComplete="tel" optional
+                    value={values.phone} onChange={handleChange} onBlur={handleBlur}
+                    error={errors.phone} disabled={busy}
+                    hint="Useful if we need to ask a quick question about the fault."
+                />
+
+                <Field
+                    label="Vehicle make and model" name="vehicle"
+                    value={values.vehicle} onChange={handleChange} onBlur={handleBlur}
+                    error={errors.vehicle} disabled={busy}
+                    hint="For example: BMW 320d, 2019"
+                />
+
+                <Field as="select" label="Service type" name="service"
+                    value={values.service} onChange={handleChange} onBlur={handleBlur} disabled={busy}>
+                    {SERVICE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                </Field>
+
+                <Field as="textarea" label="What is it doing?" name="message" rows={4}
+                    value={values.message} onChange={handleChange} onBlur={handleBlur}
+                    error={errors.message} disabled={busy}
+                    hint="The noise, when it happens, and what it feels like." />
+
+                {submitError && (
+                    <p role="alert" className="border-l-2 border-clay bg-clay-pale px-4 py-3 text-[0.875rem] text-ink">
+                        {submitError}
+                    </p>
+                )}
+
+                <button type="submit" disabled={busy} className="btn btn-solid w-full disabled:cursor-not-allowed disabled:opacity-60">
+                    {busy ? 'Sending…' : <>Send request <Send size={16} aria-hidden="true" /></>}
+                </button>
+
+                <p className="text-center text-[0.8125rem] text-muted">
+                    We reply within 2 working hours · Mon–Sat
+                </p>
+            </form>
+        </div>
+    );
+};
 
 const Contact: React.FC = () => {
     return (
         <div className="pb-32">
             <PageHero
-                badge="24/7 Technical Support"
-                title={<>Get in <span className="text-primary">Touch.</span></>}
-                subtitle="Our technical advisors are ready to assist you with performance upgrades, routine maintenance, or emergency diagnostics."
+                badge="Contact"
+                title="Talk to a service advisor"
+                subtitle="Tell us what the car is doing and we will tell you what it needs, what it will cost, and when we can take it in."
                 breadcrumb={['Home', 'Contact']}
             />
 
             {/* ── Emergency Banner ── */}
-            <section className="max-w-7xl mx-auto px-4 mb-20">
-                <motion.div
-                    initial={{ opacity: 0, y: 16 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="flex flex-col sm:flex-row items-center gap-6 glass-card border-yellow-500/30 bg-yellow-500/5 p-6 rounded-2xl"
-                >
-                    <div className="w-12 h-12 bg-yellow-500/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <AlertTriangle size={24} className="text-yellow-400" />
+            <section className="wrap mb-20">
+                <div className="panel flex flex-col items-start gap-5 border-clay bg-clay-pale p-6 sm:flex-row sm:items-center sm:gap-6">
+                    {/* The tile here was bg-clay-pale on a bg-clay-pale
+                        banner, so the icon sat on an invisible square. */}
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-sm bg-clay text-paper">
+                        <AlertTriangle size={20} aria-hidden="true" />
                     </div>
-                    <div className="text-center sm:text-left">
-                        <div className="text-white font-bold mb-1">Breakdown or Emergency?</div>
-                        <p className="text-white/50 text-sm">We offer out-of-hours emergency recovery and diagnostics. Call our priority line and we'll get you moving.</p>
+                    <div>
+                        <p className="title-sm">Car off the road right now?</p>
+                        <p className="mt-1 text-[0.9375rem] leading-relaxed text-ink-soft">
+                            Call the centre rather than using the form. If we can get to
+                            it the same day, we will tell you on the phone.
+                        </p>
                     </div>
-                    <a
-                        href="tel:+15550129999"
-                        className="btn-primary px-6 py-2.5 text-sm sm:ml-auto flex-shrink-0"
-                    >
-                        Emergency Line: +1 (555) 012-9999
+                    <a href={PHONE_HREF} className="btn btn-clay shrink-0 px-5 py-2.5 text-[0.875rem] sm:ml-auto">
+                        {PHONE_DISPLAY}
                     </a>
-                </motion.div>
+                </div>
             </section>
 
             {/* ── Contact Channels ── */}
-            <section className="max-w-7xl mx-auto px-4 mb-24">
-                <motion.div
-                    initial={{ opacity: 0, y: 16 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="text-center mb-12"
-                >
-                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">Ways to Reach Us</h2>
-                    <p className="text-white/40 max-w-xl mx-auto">Pick the channel that works best for you. We're always available.</p>
-                </motion.div>
+            <section className="wrap mb-24">
+                <h2 className="display-md border-b border-ink pb-6">Three ways to reach us</h2>
 
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                    {CONTACT_CHANNELS.map((ch, i) => (
-                        <motion.div
-                            key={ch.title}
-                            initial={{ opacity: 0, y: 16 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: i * 0.08 }}
-                            className="glass-card p-7 flex flex-col items-center text-center hover:border-primary/30 transition-all hover:-translate-y-1 duration-300 group"
-                        >
-                            <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-primary/20 transition-colors">
-                                <ch.icon size={26} className="text-primary" />
+                {/* Three real channels. The fourth was a live chat with a
+                    technician behind an href="#", and a "Get Directions"
+                    link that also went nowhere. */}
+                <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    {CONTACT_CHANNELS.map(ch => (
+                        <div key={ch.title} className="panel flex flex-col p-7 transition-colors hover:border-forest">
+                            <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-sm bg-forest-pale">
+                                <ch.icon size={20} className="text-forest" aria-hidden="true" />
                             </div>
-                            <div className="text-white font-bold mb-1">{ch.title}</div>
-                            <div className="text-primary text-sm font-medium mb-1">{ch.value}</div>
-                            <div className="text-white/30 text-xs mb-6">{ch.sub}</div>
+                            <p className="title-sm">{ch.title}</p>
+                            <p className="mt-1.5 text-[0.9375rem] font-medium text-ink-soft">{ch.value}</p>
+                            <p className="mt-1 text-[0.8125rem] text-muted">{ch.sub}</p>
                             <a
                                 href={ch.href}
-                                className="btn-secondary text-xs px-5 py-2 mt-auto"
+                                {...(ch.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                                className="btn btn-outline mt-6 self-start px-5 py-2.5 text-[0.875rem]"
                             >
                                 {ch.cta}
                             </a>
-                        </motion.div>
+                        </div>
                     ))}
                 </div>
             </section>
 
             {/* ── Response Stats ── */}
-            <section className="max-w-7xl mx-auto px-4 mb-24">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                    {RESPONSE_STATS.map((s, i) => (
-                        <motion.div
-                            key={s.label}
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: i * 0.08 }}
-                            className="glass-card p-6 flex flex-col items-center text-center"
-                        >
-                            <div className="w-11 h-11 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
-                                <s.icon size={20} className="text-primary" />
+            <section className="wrap mb-24">
+                <dl className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                    {RESPONSE_STATS.map(item => (
+                        <div key={item.label} className="panel flex flex-col p-6">
+                            <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-sm bg-forest-pale">
+                                <item.icon size={17} className="text-forest" aria-hidden="true" />
                             </div>
-                            <div className="text-2xl font-black text-primary mb-1">{s.stat}</div>
-                            <div className="text-white/40 text-xs">{s.label}</div>
-                        </motion.div>
+                            <dd className="stat text-[1.625rem]">{item.stat}</dd>
+                            <dt className="mt-2 text-[0.8125rem] leading-snug text-muted">{item.label}</dt>
+                        </div>
                     ))}
-                </div>
+                </dl>
             </section>
 
             {/* ── Form + Hours ── */}
-            <section className="max-w-7xl mx-auto px-4 mb-24">
-                <div className="grid lg:grid-cols-2 gap-14">
+            <section className="wrap mb-24">
+                <div className="grid items-start gap-12 lg:grid-cols-2 lg:gap-14">
 
-                    {/* Left — hours + quick services */}
+                    {/* Left — hours and the service lines */}
                     <div className="space-y-10">
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                        >
-                            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Connect with the Lab</h2>
-                            <p className="text-white/40 leading-relaxed">
-                                Reach out to our specialist service coordinators to schedule your next performance
-                                optimisation, routine check, or urgent diagnostic. Every enquiry is handled by a
-                                real technician — not a call centre.
+                        <div>
+                            <h2 className="display-md">Every enquiry reaches a technician</h2>
+                            <p className="lede mt-5">
+                                Not a call centre. Describe the symptom in your own words and
+                                a service advisor reads it before replying — so the first
+                                answer you get is about your car, not a price list.
                             </p>
-                        </motion.div>
+                        </div>
 
-                        {/* Hours card */}
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: 0.1 }}
-                            className="glass-card p-8 border-primary/20 bg-primary/5"
-                        >
-                            <div className="flex items-center gap-3 mb-6">
-                                <Clock className="text-primary" size={22} />
-                                <h3 className="text-xl font-bold text-white">Service Hours</h3>
+                        {/* Hours — the same figures as the footer. This panel
+                            previously said 08:00–20:00 and "Sunday: emergency
+                            only", which the footer contradicts. */}
+                        <div className="panel-sand p-6 sm:p-8">
+                            <div className="mb-5 flex items-center gap-3">
+                                <Clock size={18} className="text-forest" aria-hidden="true" />
+                                <h3 className="title-sm">Opening hours</h3>
                             </div>
-                            <div className="space-y-3 text-sm">
+                            <dl className="text-[0.9375rem]">
                                 {[
-                                    { day: 'Monday – Friday', hours: '08:00 AM – 08:00 PM', highlight: false },
-                                    { day: 'Saturday', hours: '09:00 AM – 05:00 PM', highlight: false },
-                                    { day: 'Sunday', hours: 'Emergency Only', highlight: true },
+                                    { day: 'Monday–Friday', hours: '8:30–19:00' },
+                                    { day: 'Saturday', hours: '9:00–17:00' },
+                                    { day: 'Sunday', hours: 'Closed' },
                                 ].map(row => (
-                                    <div key={row.day} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
-                                        <span className="text-white/60">{row.day}</span>
-                                        <span className={row.highlight ? 'text-primary font-bold' : 'text-white/80 font-medium'}>{row.hours}</span>
+                                    <div key={row.day} className="flex items-center justify-between gap-3 border-b border-line py-2.5 last:border-0">
+                                        <dt className="text-muted">{row.day}</dt>
+                                        <dd className="font-medium tabular-nums text-ink-soft">{row.hours}</dd>
                                     </div>
                                 ))}
-                            </div>
-                        </motion.div>
+                            </dl>
+                        </div>
 
-                        {/* Quick Services */}
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: 0.15 }}
-                        >
-                            <h3 className="text-lg font-bold text-white mb-5">Most Requested Services</h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                {[
-                                    { icon: Wrench, label: 'Routine Service' },
-                                    { icon: Zap, label: 'Performance Tune' },
-                                    { icon: Shield, label: 'Diagnostic Scan' },
-                                    { icon: Car, label: 'Pre-Purchase Check' },
-                                ].map(item => (
-                                    <div key={item.label} className="glass-card p-4 flex items-center gap-3 hover:border-primary/30 transition-colors cursor-pointer group">
-                                        <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                                            <item.icon size={16} className="text-primary" />
-                                        </div>
-                                        <span className="text-white/70 text-sm font-medium group-hover:text-white transition-colors">{item.label}</span>
-                                    </div>
+                        {/* The six service lines, as plain text. These were four
+                            tiles with cursor-pointer and no click handler. */}
+                        <div>
+                            <h3 className="title-sm">What we take on</h3>
+                            <ul className="mt-4 grid grid-cols-1 gap-x-8 sm:grid-cols-2">
+                                {['Diagnostics', 'Periodic maintenance', 'Brake service',
+                                    'AC & cooling', 'Performance & ECU', 'Detailing'].map(label => (
+                                    <li key={label} className="flex items-center gap-2.5 border-b border-line-soft py-2.5 text-[0.9375rem] text-ink-soft">
+                                        <Wrench size={14} className="shrink-0 text-forest" aria-hidden="true" />
+                                        {label}
+                                    </li>
                                 ))}
-                            </div>
-                        </motion.div>
+                            </ul>
+                            <p className="mt-4 text-[0.8125rem] leading-relaxed text-muted">
+                                We do not take on bodywork or insurance claims.
+                            </p>
+                        </div>
                     </div>
 
                     {/* Right — form */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.96 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        viewport={{ once: true }}
-                        className="glass-card p-10 border-white/5"
-                    >
-                        <h3 className="text-2xl font-bold text-white mb-8">Send a Request</h3>
-                        <form className="space-y-6">
-                            <div className="grid md:grid-cols-2 gap-5">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-white/60 px-1">Full Name</label>
-                                    <input
-                                        type="text"
-                                        id="contact-name"
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary/50 transition-colors text-white placeholder:text-white/20"
-                                        placeholder="John Doe"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-white/60 px-1">Email Address</label>
-                                    <input
-                                        type="email"
-                                        id="contact-email"
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary/50 transition-colors text-white placeholder:text-white/20"
-                                        placeholder="john@example.com"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-white/60 px-1">Phone Number <span className="text-white/30">(optional)</span></label>
-                                <input
-                                    type="tel"
-                                    id="contact-phone"
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary/50 transition-colors text-white placeholder:text-white/20"
-                                    placeholder="+1 (555) 000-0000"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-white/60 px-1">Vehicle Make & Model</label>
-                                <input
-                                    type="text"
-                                    id="contact-vehicle"
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary/50 transition-colors text-white placeholder:text-white/20"
-                                    placeholder="e.g. BMW M3 2022"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-white/60 px-1">Service Type</label>
-                                <select
-                                    id="contact-service"
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary/50 transition-colors appearance-none text-white"
-                                >
-                                    {SERVICE_OPTIONS.map(opt => (
-                                        <option key={opt} className="bg-secondary">{opt}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-white/60 px-1">Message</label>
-                                <textarea
-                                    rows={4}
-                                    id="contact-message"
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary/50 transition-colors text-white placeholder:text-white/20 resize-none"
-                                    placeholder="Describe your service needs or symptoms you've noticed..."
-                                />
-                            </div>
-
-                            <button className="btn-primary w-full flex items-center justify-center gap-2 py-4">
-                                <span>Send Request</span>
-                                <Send size={18} />
-                            </button>
-
-                            <p className="text-center text-white/20 text-xs">
-                                We'll respond within 2 working hours · Mon – Sat
-                            </p>
-                        </form>
-                    </motion.div>
+                    <ServiceRequestForm />
                 </div>
             </section>
 
             {/* ── FAQ ── */}
-            <section className="max-w-4xl mx-auto px-4">
-                <motion.div
-                    initial={{ opacity: 0, y: 16 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="text-center mb-12"
-                >
-                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Frequently Asked Questions</h2>
-                    <p className="text-white/40 max-w-xl mx-auto">
-                        Quick answers to common questions. Can't find what you need? Just ask us directly.
-                    </p>
-                </motion.div>
-
-                <div className="space-y-3">
-                    {FAQS.map((faq, i) => (
-                        <FAQItem key={faq.q} q={faq.q} a={faq.a} index={i} />
-                    ))}
-                </div>
+            {/* wrap-tight, not a third container width on one page */}
+            <section className="wrap-tight">
+                <h2 className="display-md border-b border-ink pb-6">Common questions</h2>
+                <p className="mt-5 text-[0.9375rem] leading-relaxed text-muted">
+                    Not covered here? Call the centre on{' '}
+                    <a
+                        href={PHONE_HREF}
+                        className="text-ink underline decoration-line-strong underline-offset-4 transition-colors hover:text-clay-ink hover:decoration-clay"
+                    >
+                        {PHONE_DISPLAY}
+                    </a>
+                    {' '}and ask for a service advisor.
+                </p>
+                <Accordion items={FAQS} className="mt-8" defaultOpen={0} />
             </section>
         </div>
     );

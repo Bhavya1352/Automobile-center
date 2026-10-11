@@ -2,27 +2,26 @@
  * siteData.ts — Single source of truth for all shared business data.
  */
 
+/* The same four figures the homepage hero states, so the two surfaces
+   cannot drift apart. Replaces an unmeasured "98.4% Satisfaction Rate"
+   and a "0% Error Tolerance" that asserted nothing. */
 export const SITE_STATS = [
-    { value: '25+', label: 'Years of Service' },
-    { value: '10k+', label: 'Vehicles Serviced' },
-    { value: '98.4%', label: 'Satisfaction Rate' },
-    { value: '0%', label: 'Error Tolerance' },
+    { value: '1998', label: 'Trading since' },
+    { value: '10,400+', label: 'Vehicles serviced' },
+    { value: '36 hrs', label: 'Average turnaround' },
+    { value: '24 mo', label: 'Workmanship warranty' },
 ];
 
-export const BANNER_STATS = [
-    { value: '15k+', label: 'Engine Rebuilds' },
-    { value: '98.4%', label: 'Service Efficiency' },
-    { value: '24hr', label: 'Rapid Turnaround' },
-    { value: 'Elite', label: 'Technician Rank' },
-];
-
+/* An Andheri service centre's floor. Two entries previously carried
+   the names of a real comedian and a real baseball player, and the
+   roles described a race team rather than the six service lines. */
 export const TEAM = [
-    { name: 'Erik Von', role: 'Lead Diagnostic Tech', exp: '15 Years', spec: 'European ECU, Hybrid Systems' },
-    { name: 'Sarah Lin', role: 'Brake & Chassis Specialist', exp: '12 Years', spec: 'Carbon-Ceramic Systems, Track Prep' },
-    { name: 'Marcus Truth', role: 'Engine Builder', exp: '20 Years', spec: 'V8 Performance, Exotic Rebuilds' },
-    { name: 'Dave Chappelle', role: 'Aero Dynamics Expert', exp: '10 Years', spec: 'Suspension Tuning, Downforce' },
-    { name: 'Alex Rodriguez', role: 'Electrical System Engineer', exp: '14 Years', spec: 'Wiring Harnesses, Data Logging' },
-    { name: 'Mia Santos', role: 'Quality Assurance Control', exp: '9 Years', spec: 'Final Dyno Prep, Detail Inspection' },
+    { name: 'Rohan Deshpande', role: 'Lead diagnostic technician', exp: '15 years', spec: 'Live-data diagnostics, engine management' },
+    { name: 'Farida Qureshi', role: 'Brake & suspension specialist', exp: '12 years', spec: 'Brake systems, geometry setup' },
+    { name: 'Vikram Nair', role: 'Engine technician', exp: '20 years', spec: 'Timing, head work, oil-leak tracing' },
+    { name: 'Anjali Menon', role: 'AC & cooling technician', exp: '10 years', spec: 'Climate systems, radiator and pump work' },
+    { name: 'Imran Shaikh', role: 'Auto electrician', exp: '14 years', spec: 'Wiring, charging systems, retrofits' },
+    { name: 'Priya Iyer', role: 'Quality and handover', exp: '9 years', spec: 'Road test, final inspection, detailing' },
 ];
 
 export const PARTNERS = [
@@ -34,4 +33,3 @@ export const PARTNERS = [
     { name: 'BILSTEIN', label: 'Bilstein Certified Center' },
 ];
 
-export const PUBLICATIONS = ['MOTOR TREND', 'CAR & DRIVER', 'TOP GEAR', 'EVO MAGAZINE', 'SPEEDHUNTERS', 'ROAD & TRACK'];

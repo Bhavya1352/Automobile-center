@@ -1,356 +1,208 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useLanguage } from '../context/LanguageContext';
-import { useInventory } from '../context/InventoryContext';
-import { Globe, Menu, X, ChevronDown, User, ShieldCheck, Car, LayoutDashboard, Zap, Heart, ArrowRightLeft } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
+
+/**
+ * Navbar — a company navigation bar, not a floating control panel.
+ *
+ * Fixed to the top on the page ground, closed by a hairline rule. Below
+ * `lg` the links collapse into a full-height panel that locks the body
+ * scroll behind it.
+ */
 
 interface NavItem {
-    name: string;
-    path: string;
-    icon?: React.ElementType;
+    label: string;
+    /** Homepage section id, for in-page navigation. */
+    hash?: string;
+    /** Or a real route. */
+    to?: string;
 }
 
-interface NavLink {
-    name: string;
-    type: 'link' | 'dropdown';
-    path?: string;
-    items?: NavItem[];
-}
+const NAV: NavItem[] = [
+    { label: 'Services', hash: 'services' },
+    { label: 'How it works', hash: 'how-it-works' },
+    { label: 'AI vehicle check', hash: 'ai-check' },
+    { label: 'Pricing', hash: 'pricing' },
+];
 
 const Navbar: React.FC = () => {
-    const { direction, toggleDirection } = useLanguage();
-    const { wishlist, compareList } = useInventory();
     const [mobileOpen, setMobileOpen] = useState(false);
-    const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-    const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
     const location = useLocation();
     const navigate = useNavigate();
-    const navRef = useRef<HTMLElement>(null);
+    const toggleRef = useRef<HTMLButtonElement>(null);
 
-    // ── Close dropdown when clicking outside ──
+    // Escape closes the panel and returns focus to the toggle.
     useEffect(() => {
-        const handler = (e: MouseEvent) => {
-            if (navRef.current && !navRef.current.contains(e.target as Node)) {
-                setActiveDropdown(null);
+        if (!mobileOpen) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                setMobileOpen(false);
+                toggleRef.current?.focus();
             }
         };
-        document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
-    }, []);
+        document.addEventListener('keydown', onKey);
+        return () => document.removeEventListener('keydown', onKey);
+    }, [mobileOpen]);
 
-    // ── Auto-close on route change ──
+    // Prevent the page scrolling behind the open mobile panel.
     useEffect(() => {
-        setActiveDropdown(null);
+        document.body.style.overflow = mobileOpen ? 'hidden' : '';
+        return () => { document.body.style.overflow = ''; };
+    }, [mobileOpen]);
+
+    const goToSection = useCallback((hash: string) => {
         setMobileOpen(false);
-        setMobileExpanded(null);
-    }, [location.pathname]);
+        const scrollTo = (el: HTMLElement) => {
+            const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const top = el.getBoundingClientRect().top + window.scrollY - 76;
+            window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' });
+        };
 
-    const isActive = (path: string) =>
-        path === '/home1'
-            ? location.pathname === '/' || location.pathname === '/home1'
-            : location.pathname === path;
+        if (location.pathname === '/') {
+            const el = document.getElementById(hash);
+            if (el) scrollTo(el);
+            return;
+        }
 
-    const isDropdownActive = (items?: NavItem[]) =>
-        items?.some(item => isActive(item.path)) ?? false;
-
-    const navLinks: NavLink[] = [
-        {
-            name: 'Home',
-            type: 'dropdown',
-            items: [
-                { name: 'Home 1 — Tech Hub', path: '/home1', icon: Zap },
-                { name: 'Home 2 — Heritage', path: '/home2', icon: LayoutDashboard },
-            ],
-        },
-        { name: 'About', type: 'link', path: '/about' },
-        { name: 'Inventory', type: 'link', path: '/inventory' },
-        { name: 'Contact', type: 'link', path: '/contact' },
-        {
-            name: 'Dashboard',
-            type: 'dropdown',
-            items: [
-                { name: 'User Dashboard', path: '/user-dashboard', icon: User },
-                { name: 'Admin Dashboard', path: '/admin-dashboard', icon: ShieldCheck },
-            ],
-        },
-    ];
-
-    const handleNav = (path: string) => {
-        navigate(path);
-        setActiveDropdown(null);
-        setMobileOpen(false);
-    };
+        navigate('/');
+        // The homepage is a lazy route, and ScrollToTop resets the scroll
+        // as soon as the path changes. A fixed delay lost both races: it
+        // fired before the section existed, and what it did scroll was
+        // undone by that reset. Waiting for the target to appear puts the
+        // scroll after both, since the section only exists once the
+        // homepage has mounted.
+        let frames = 0;
+        const findAndScroll = () => {
+            const el = document.getElementById(hash);
+            if (el) { scrollTo(el); return; }
+            // ~2s at 60fps, then give up rather than scroll blind.
+            if (++frames < 120) requestAnimationFrame(findAndScroll);
+        };
+        requestAnimationFrame(findAndScroll);
+    }, [location.pathname, navigate]);
 
     return (
-        <nav
-            ref={navRef}
-            style={{
-                zIndex: 9999,
-                position: 'fixed',
-                top: '1rem',
-                left: '1.5rem',
-                right: '1.5rem',
-                background: 'rgba(10,10,15,0.75)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                backdropFilter: 'blur(24px)',
-                WebkitBackdropFilter: 'blur(24px)',
-                borderRadius: '1rem',
-                boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.05), 0 8px 40px -8px rgba(0,0,0,0.5)',
-                /* NO overflow:hidden — this is the key that was clipping the dropdown */
-            }}
-        >
-            <div className="max-w-7xl mx-auto px-5 h-20 flex items-center justify-between">
+        <header className="fixed inset-x-0 top-0 z-50 border-b border-line bg-paper">
+            <div className="wrap">
+                <div className="flex h-[72px] items-center justify-between gap-6">
 
-                {/* ── Brand ─────────────────────────────────────────── */}
-                <button
-                    onClick={() => handleNav('/')}
-                    className="flex items-center gap-2 flex-shrink-0 group"
-                >
-                    <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center neon-glow group-hover:scale-110 transition-transform">
-                        <Car size={20} className="text-secondary" />
-                    </div>
-                    <span className="text-2xl font-outfit font-bold text-white group-hover:text-primary transition-colors">
-                        Auto<span className="text-primary">Sphere</span>
-                    </span>
-                </button>
+                    {/* Wordmark */}
+                    <Link
+                        to="/"
+                        className="flex shrink-0 items-baseline gap-[3px] font-display text-[1.625rem] font-normal leading-none tracking-[-0.01em] text-ink"
+                    >
+                        AutoSphere
+                        <span className="text-clay-ink" aria-hidden="true">.</span>
+                        <span className="sr-only">Home</span>
+                    </Link>
 
-                {/* ── Desktop Links ─────────────────────────────────── */}
-                <div className="hidden lg:flex items-center gap-8">
-                    {navLinks.map((link) => (
-                        <div key={link.name} className="relative">
-
-                            {link.type === 'link' ? (
-                                <button
-                                    onClick={() => handleNav(link.path!)}
-                                    className={`py-2 px-1 font-medium text-sm transition-colors ${link.path && isActive(link.path)
-                                        ? 'text-primary font-semibold'
-                                        : 'text-white/70 hover:text-white'
-                                        }`}
-                                >
-                                    {link.name}
-                                </button>
-                            ) : (
-                                /* ── Dropdown trigger ── */
-                                <button
-                                    onClick={() =>
-                                        setActiveDropdown(prev =>
-                                            prev === link.name ? null : link.name
-                                        )
-                                    }
-                                    className={`flex items-center gap-1 py-2 px-1 font-medium text-sm transition-colors select-none ${isDropdownActive(link.items) || activeDropdown === link.name
-                                        ? 'text-primary font-semibold'
-                                        : 'text-white/70 hover:text-white'
-                                        }`}
-                                >
-                                    {link.name}
-                                    <ChevronDown
-                                        size={14}
-                                        className={`transition-transform duration-300 ${activeDropdown === link.name ? 'rotate-180' : ''
-                                            }`}
-                                    />
-                                </button>
-                            )}
-
-                            {/* ── Dropdown panel ── */}
-                            {link.type === 'dropdown' && (
-                                <AnimatePresence>
-                                    {activeDropdown === link.name && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: -6, scale: 0.96 }}
-                                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                                            exit={{ opacity: 0, y: -6, scale: 0.96 }}
-                                            transition={{ duration: 0.15, ease: 'easeOut' }}
-                                            style={{ zIndex: 10000 }}
-                                            className="absolute top-full mt-3 left-0 w-64 rounded-2xl border border-white/10 shadow-2xl overflow-hidden"
-                                            // prevent click-outside from firing on the panel itself
-                                            onMouseDown={e => e.stopPropagation()}
+                    {/* Desktop navigation */}
+                    <nav aria-label="Main" className="hidden lg:block">
+                        <ul className="flex items-center gap-9">
+                            {NAV.map(item => (
+                                <li key={item.label}>
+                                    {item.hash ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => goToSection(item.hash!)}
+                                            className="text-[0.9375rem] font-medium text-ink-soft transition-colors hover:text-ink"
                                         >
-                                            {/* Frosted glass background */}
-                                            <div className="bg-[#0d0d0d]/95 backdrop-blur-2xl p-2">
-                                                {/* Triangle notch */}
-                                                <div className="absolute -top-2 left-6 w-4 h-4 bg-[#0d0d0d]/95 border-l border-t border-white/10 rotate-45 rounded-sm" />
-
-                                                {link.items?.map((item) => {
-                                                    const active = isActive(item.path);
-                                                    return (
-                                                        <button
-                                                            key={item.name}
-                                                            onClick={() => handleNav(item.path)}
-                                                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-150 group/item ${active
-                                                                ? 'bg-primary/15 text-primary'
-                                                                : 'text-white/70 hover:bg-white/5 hover:text-white'
-                                                                }`}
-                                                        >
-                                                            {item.icon && (
-                                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${active
-                                                                    ? 'bg-primary/20'
-                                                                    : 'bg-white/5 group-hover/item:bg-primary/10'
-                                                                    }`}>
-                                                                    <item.icon
-                                                                        size={16}
-                                                                        className={active ? 'text-primary' : 'text-white/40 group-hover/item:text-primary transition-colors'}
-                                                                    />
-                                                                </div>
-                                                            )}
-                                                            <span className="text-sm font-medium flex-1 text-left">{item.name}</span>
-                                                            {active && (
-                                                                <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0 animate-pulse" />
-                                                            )}
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                        </motion.div>
+                                            {item.label}
+                                        </button>
+                                    ) : (
+                                        <Link
+                                            to={item.to!}
+                                            className="text-[0.9375rem] font-medium text-ink-soft transition-colors hover:text-ink"
+                                        >
+                                            {item.label}
+                                        </Link>
                                     )}
-                                </AnimatePresence>
-                            )}
-                        </div>
-                    ))}
-                </div>
+                                </li>
+                            ))}
+                        </ul>
+                    </nav>
 
-                {/* ── Desktop Actions ───────────────────────────────── */}
-                <div className="hidden lg:flex items-center gap-4">
-                    <button
-                        onClick={() => navigate('/inventory')}
-                        className="p-2 text-white/50 hover:text-primary transition-colors rounded-lg hover:bg-white/5 relative"
-                        title="Wishlist"
-                    >
-                        <Heart size={18} fill={wishlist.length > 0 ? 'currentColor' : 'none'} />
-                        {wishlist.length > 0 && (
-                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-secondary text-[10px] font-black rounded-full flex items-center justify-center">
-                                {wishlist.length}
-                            </span>
-                        )}
-                    </button>
-                    <button
-                        onClick={() => navigate('/compare')}
-                        className="p-2 text-white/50 hover:text-primary transition-colors rounded-lg hover:bg-white/5 relative"
-                        title="Compare"
-                    >
-                        <ArrowRightLeft size={18} />
-                        {compareList.length > 0 && (
-                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-secondary text-[10px] font-black rounded-full flex items-center justify-center">
-                                {compareList.length}
-                            </span>
-                        )}
-                    </button>
-                    <button
-                        onClick={toggleDirection}
-                        className="p-2 text-white/50 hover:text-primary transition-colors rounded-lg hover:bg-white/5"
-                        title={direction === 'ltr' ? 'Switch to RTL' : 'Switch to LTR'}
-                    >
-                        <Globe size={18} />
-                    </button>
-                    <button
-                        onClick={() => handleNav('/get-started')}
-                        className="btn-primary py-2 px-6 text-sm"
-                    >
-                        Get Started
-                    </button>
-                </div>
+                    {/* Desktop actions */}
+                    <div className="hidden shrink-0 items-center gap-6 lg:flex">
+                        <Link
+                            to="/get-started"
+                            className="text-[0.9375rem] font-medium text-ink-soft transition-colors hover:text-ink"
+                        >
+                            Log in
+                        </Link>
+                        <Link to="/contact" className="btn btn-solid px-5 py-[0.6875rem] text-[0.875rem]">
+                            Book a service
+                        </Link>
+                    </div>
 
-                {/* ── Mobile Toggle ─────────────────────────────────── */}
-                <div className="lg:hidden flex items-center gap-3">
-                    <button onClick={toggleDirection} className="text-white/50 hover:text-primary transition-colors">
-                        <Globe size={18} />
-                    </button>
+                    {/* Mobile toggle */}
                     <button
-                        onClick={() => setMobileOpen(v => !v)}
-                        className="text-white hover:text-primary transition-colors"
+                        ref={toggleRef}
+                        type="button"
+                        onClick={() => setMobileOpen(o => !o)}
+                        aria-expanded={mobileOpen}
+                        aria-controls="mobile-nav"
+                        aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+                        className="-mr-2 flex h-10 w-10 items-center justify-center text-ink lg:hidden"
                     >
-                        {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+                        {mobileOpen ? <X size={22} strokeWidth={1.5} /> : <Menu size={22} strokeWidth={1.5} />}
                     </button>
                 </div>
             </div>
 
-            {/* ── Mobile Menu ───────────────────────────────────────── */}
-            <AnimatePresence>
-                {mobileOpen && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.25 }}
-                        className="lg:hidden border-t border-white/5 overflow-hidden"
-                    >
-                        <div className="p-4 space-y-1">
-                            {navLinks.map((link) => (
-                                <div key={link.name}>
-                                    {link.type === 'dropdown' ? (
-                                        <>
-                                            <button
-                                                onClick={() =>
-                                                    setMobileExpanded(p =>
-                                                        p === link.name ? null : link.name
-                                                    )
-                                                }
-                                                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-colors ${isDropdownActive(link.items)
-                                                    ? 'text-primary bg-primary/5'
-                                                    : 'text-white/60 hover:text-white hover:bg-white/5'
-                                                    }`}
-                                            >
-                                                <span className="uppercase tracking-wider text-xs font-bold">{link.name}</span>
-                                                <ChevronDown
-                                                    size={14}
-                                                    className={`transition-transform ${mobileExpanded === link.name ? 'rotate-180' : ''}`}
-                                                />
-                                            </button>
-                                            <AnimatePresence>
-                                                {mobileExpanded === link.name && (
-                                                    <motion.div
-                                                        initial={{ height: 0, opacity: 0 }}
-                                                        animate={{ height: 'auto', opacity: 1 }}
-                                                        exit={{ height: 0, opacity: 0 }}
-                                                        className="overflow-hidden pl-3 mt-1 space-y-1"
-                                                    >
-                                                        {link.items?.map((item) => {
-                                                            const active = isActive(item.path);
-                                                            return (
-                                                                <button
-                                                                    key={item.name}
-                                                                    onClick={() => handleNav(item.path)}
-                                                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-colors ${active
-                                                                        ? 'bg-primary/15 text-primary'
-                                                                        : 'text-white/60 hover:bg-white/5 hover:text-white'
-                                                                        }`}
-                                                                >
-                                                                    {item.icon && <item.icon size={15} className={active ? 'text-primary' : 'text-primary/40'} />}
-                                                                    <span>{item.name}</span>
-                                                                    {active && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />}
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </motion.div>
-                                                )}
-                                            </AnimatePresence>
-                                        </>
-                                    ) : (
-                                        <button
-                                            onClick={() => handleNav(link.path!)}
-                                            className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-colors ${link.path && isActive(link.path)
-                                                ? 'bg-primary/15 text-primary'
-                                                : 'text-white hover:bg-white/5 hover:text-primary'
-                                                }`}
-                                        >
-                                            {link.name}
-                                        </button>
-                                    )}
-                                </div>
+            {/* Mobile panel */}
+            {mobileOpen && (
+                <div
+                    id="mobile-nav"
+                    className="fixed inset-x-0 top-[72px] bottom-0 overflow-y-auto border-t border-line bg-paper lg:hidden"
+                >
+                    <nav aria-label="Main" className="wrap py-2">
+                        <ul>
+                            {NAV.map(item => (
+                                <li key={item.label} className="border-b border-line-soft">
+                                    <button
+                                        type="button"
+                                        onClick={() => goToSection(item.hash!)}
+                                        className="w-full py-5 text-left text-[1.25rem] font-semibold tracking-[-0.014em] text-ink"
+                                    >
+                                        {item.label}
+                                    </button>
+                                </li>
                             ))}
-                            <div className="pt-3 border-t border-white/5">
-                                <button
-                                    onClick={() => handleNav('/get-started')}
-                                    className="w-full btn-primary text-sm py-2.5"
-                                >
-                                    Get Started
-                                </button>
-                            </div>
+                        </ul>
+
+                        <div className="mt-8 flex flex-col gap-3 pb-10">
+                            <Link
+                                to="/contact"
+                                onClick={() => setMobileOpen(false)}
+                                className="btn btn-solid w-full"
+                            >
+                                Book a service
+                            </Link>
+                            <Link
+                                to="/get-started"
+                                onClick={() => setMobileOpen(false)}
+                                className="btn btn-outline w-full"
+                            >
+                                Log in
+                            </Link>
                         </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </nav>
+
+                        <div className="border-t border-line-soft pb-12 pt-6">
+                            <p className="spec-label">Service centre</p>
+                            <a
+                                onClick={() => setMobileOpen(false)}
+                                href="tel:+912244881200"
+                                className="stat mt-1 block text-[1.375rem]"
+                            >
+                                +91 22 4488 1200
+                            </a>
+                            <p className="mt-1 text-sm text-muted">Mon–Sat, 8:30–19:00</p>
+                        </div>
+                    </nav>
+                </div>
+            )}
+        </header>
     );
 };
 

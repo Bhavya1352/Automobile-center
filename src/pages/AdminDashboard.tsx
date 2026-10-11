@@ -1,724 +1,1226 @@
-import React, { useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
     Users, LayoutDashboard, Settings, Wrench, BarChart3, Bell,
-    Search, UserPlus, Download, FileText, Car, AlertTriangle,
-    CheckCircle2, Star, Package, MessageSquare,
-    Shield, ChevronRight, Zap, Cpu
+    Search, UserPlus, Download, FileText, Car,
+    CheckCircle2, Star, ChevronRight, XCircle, SearchX,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-/* ─── Data ─────────────────────────────────────────────── */
+import { DashboardTabs } from '../components/dashboard/DashboardTabs';
+import { StatCard } from '../components/dashboard/StatCard';
+import { BookingStatusSelect } from '../components/dashboard/BookingStatusSelect';
+import { JobUpdateDialog } from '../components/dashboard/JobUpdateDialog';
+import { CustomerDetailsDialog } from '../components/dashboard/CustomerDetailsDialog';
+import { CustomerFormDialog } from '../components/dashboard/CustomerFormDialog';
+import { BookingFormDialog } from '../components/dashboard/BookingFormDialog';
+import { WorkshopSettings } from '../components/dashboard/WorkshopSettings';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { StatusBadge } from '../components/ui/StatusBadge';
+import { EmptyState, ErrorState, LoadingState, Skeleton } from '../components/ui/DataState';
+
+import { useWorkshop, vehicleLabel } from '../hooks/useWorkshop';
+import { useTabParam, dashboardPanelProps } from '../hooks/useTabParam';
+import { useDebounce } from '../hooks/useDebounce';
+import { useToast } from '../hooks/useToast';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
+
+import {
+    DONUT_CIRCUMFERENCE, DONUT_RADIUS, monthlyTotals, shareByService,
+    sparklinePath, technicianWorkload,
+} from '../lib/analytics';
+import { downloadCsv } from '../lib/csv';
+import {
+    formatDate, formatKm, formatRelativeDay, formatRupees, formatRupeesCompact,
+} from '../lib/format';
+import { BAYS } from '../data/workshopData';
+import type { Booking, BookingStatus, Customer } from '../types/workshop';
+
+/* ─── Tabs ──────────────────────────────────────────────── */
 
 const tabs = [
     { icon: LayoutDashboard, label: 'Overview' },
     { icon: Users, label: 'Customers' },
     { icon: Wrench, label: 'Technicians' },
     { icon: BarChart3, label: 'Revenue' },
-    { icon: Car, label: 'Vehicles' },
+    { icon: Car, label: 'Workshop Floor' },
     { icon: Settings, label: 'Settings' },
-];
+] as const;
 
-const serviceQueue = [
-    { id: 'SRV-9201', customer: 'Arjun Mehta', service: 'ECU Remap & Tune', bay: 'Bay 3', tech: 'Amit D.', status: 'In Progress', eta: '16:00' },
-    { id: 'SRV-9194', customer: 'Priya Sharma', service: 'Full 150-pt Audit', bay: 'Bay 1', tech: 'Rajan K.', status: 'Awaiting Parts', eta: 'Mar 5' },
-    { id: 'SRV-9188', customer: 'Vikram Singh', service: 'Brake Optimisation', bay: 'Bay 5', tech: 'Suresh P.', status: 'In Progress', eta: '18:00' },
-    { id: 'SRV-9176', customer: 'Neha Kapoor', service: 'Oil & Filter Change', bay: 'Bay 2', tech: 'Deepak S.', status: 'Completed', eta: 'Done' },
-    { id: 'SRV-9165', customer: 'Rohit Verma', service: 'Suspension Geometry', bay: 'Bay 4', tech: 'Karan M.', status: 'In Progress', eta: '17:30' },
-];
-
-const allCustomers = [
-    { name: 'Arjun Mehta', vehicle: 'Porsche 911 GT3', date: 'Mar 3, 2026', visits: 14, plan: 'Premium', status: 'Active', spent: '₹1.8L' },
-    { name: 'Priya Sharma', vehicle: 'BMW M4 Competition', date: 'Mar 2, 2026', visits: 9, plan: 'Basic', status: 'Active', spent: '₹82k' },
-    { name: 'Vikram Singh', vehicle: 'Mercedes AMG C63', date: 'Mar 1, 2026', visits: 6, plan: 'Premium', status: 'Active', spent: '₹1.1L' },
-    { name: 'Neha Kapoor', vehicle: 'Audi RS5 Sportback', date: 'Feb 28, 2026', visits: 3, plan: 'Basic', status: 'Completed', spent: '₹34k' },
-    { name: 'Rohit Verma', vehicle: 'Toyota Supra GR', date: 'Feb 21, 2026', visits: 11, plan: 'Premium', status: 'Active', spent: '₹2.4L' },
-    { name: 'Anjali Das', vehicle: 'Ford Mustang GT', date: 'Feb 15, 2026', visits: 2, plan: 'Basic', status: 'Inactive', spent: '₹18k' },
-];
-
-const technicians = [
-    { name: 'Rajan Kumar', role: 'Senior Mechanic', specialty: 'Engine & Diagnostics', status: 'On Duty', services: 142, rating: 4.9, currentJob: 'SRV-9194' },
-    { name: 'Suresh Patil', role: 'Mechanic', specialty: 'Transmission & Brakes', status: 'On Duty', services: 98, rating: 4.7, currentJob: 'SRV-9188' },
-    { name: 'Amit Desai', role: 'ECU Specialist', specialty: 'Performance Tuning', status: 'On Duty', services: 87, rating: 4.9, currentJob: 'SRV-9201' },
-    { name: 'Karan Mehta', role: 'Detailing Expert', specialty: 'Ceramic & Paint', status: 'On Break', services: 114, rating: 4.8, currentJob: 'SRV-9165' },
-    { name: 'Pooja Sharma', role: 'Service Advisor', specialty: 'Customer & Billing', status: 'On Duty', services: 203, rating: 5.0, currentJob: 'Front Desk' },
-    { name: 'Deepak Singh', role: 'Junior Mechanic', specialty: 'General Maintenance', status: 'Off Today', services: 45, rating: 4.5, currentJob: '—' },
-];
-
-const revenueMonths = [
-    { month: 'Oct', revenue: '₹5.2L', jobs: 51, growth: null },
-    { month: 'Nov', revenue: '₹6.1L', jobs: 58, growth: '+17%' },
-    { month: 'Dec', revenue: '₹7.0L', jobs: 64, growth: '+15%' },
-    { month: 'Jan', revenue: '₹6.8L', jobs: 62, growth: '-3%' },
-    { month: 'Feb', revenue: '₹7.9L', jobs: 71, growth: '+16%' },
-    { month: 'Mar', revenue: '₹8.4L', jobs: 48, growth: '+6% ↑' },
-];
-
-const workshopVehicles = [
-    { reg: 'MH 01 AB 9201', name: 'Porsche 911 GT3', owner: 'Arjun Mehta', bay: 'Bay 3', status: 'In Service', eta: '16:00 Today', service: 'ECU Remap' },
-    { reg: 'MH 05 CD 4420', name: 'BMW M4 Competition', owner: 'Priya Sharma', bay: 'Bay 1', status: 'Awaiting Parts', eta: 'Mar 5, 2026', service: 'Full Audit' },
-    { reg: 'DL 08 FG 7711', name: 'Mercedes AMG C63', owner: 'Vikram Singh', bay: 'Bay 5', status: 'In Service', eta: '18:00 Today', service: 'Brake Optimisation' },
-    { reg: 'KA 02 HJ 3390', name: 'Audi RS5 Sportback', owner: 'Neha Kapoor', bay: 'Bay 2', status: 'Ready for Pickup', eta: 'Now', service: 'Oil & Filter' },
-    { reg: 'MH 12 PQ 6620', name: 'Toyota Supra GR', owner: 'Rohit Verma', bay: 'Bay 4', status: 'In Service', eta: '17:30 Today', service: 'Suspension Setup' },
-];
-
-const activityLog = [
-    { icon: UserPlus, text: 'New booking — Arjun Mehta (SRV-9201)', time: '4 min ago', type: 'info' },
-    { icon: CheckCircle2, text: 'SRV-9176 completed — Neha Kapoor · Oil & Filter', time: '22 min ago', type: 'success' },
-    { icon: AlertTriangle, text: 'Bay 6 flagged for equipment maintenance', time: '1h ago', type: 'warn' },
-    { icon: Bell, text: 'Monthly revenue target 84% achieved', time: '3h ago', type: 'info' },
-    { icon: Package, text: 'Parts order placed — Brembo Callipers (SRV-9194)', time: '4h ago', type: 'info' },
-    { icon: Star, text: '5-star review received from Rohit Verma', time: '6h ago', type: 'success' },
-];
-
-const topServices = [
-    { name: 'ECU Remap & Performance Tune', count: 38, revenue: '₹2.1L', pct: 100 },
-    { name: 'Full 150-Point Service Audit', count: 31, revenue: '₹1.7L', pct: 82 },
-    { name: 'Ceramic Coating & Detailing', count: 27, revenue: '₹1.3L', pct: 71 },
-    { name: 'Brake System Overhaul', count: 22, revenue: '₹88k', pct: 58 },
-    { name: 'Transmission Service', count: 18, revenue: '₹72k', pct: 47 },
-];
+const TAB_LABELS = tabs.map(t => t.label);
 
 const fade = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -8 } };
+
+/** Jobs that are still the workshop's problem. */
+const OPEN_STATUSES: readonly BookingStatus[] = ['Pending', 'Confirmed', 'In Service'];
+
+type Dialog =
+    | { kind: 'none' }
+    | { kind: 'job'; booking: Booking }
+    | { kind: 'customer-details'; customer: Customer }
+    | { kind: 'customer-form'; customer: Customer | null }
+    | { kind: 'customer-remove'; customer: Customer }
+    | { kind: 'booking-form'; customerId?: string };
+
+const CLOSED: Dialog = { kind: 'none' };
+
+/** Floor filter on the workshop tab. */
+type FloorFilter = 'All' | BookingStatus;
 
 /* ─── Component ─────────────────────────────────────────── */
 
 const AdminDashboard: React.FC = () => {
-    const [activeTab, setActiveTab] = useState('Overview');
+    useDocumentTitle('Workshop admin');
+
+    const {
+        status, error, reload, customers, vehicles, bookings, records,
+        removeCustomer, resetWorkshop,
+    } = useWorkshop();
+    const { showToast } = useToast();
+
+    const [tab, setTab] = useTabParam(TAB_LABELS);
+    const [dialog, setDialog] = useState<Dialog>(CLOSED);
+    const close = useCallback(() => setDialog(CLOSED), []);
+
     const [search, setSearch] = useState('');
+    const debouncedSearch = useDebounce(search, 250);
+    const [floorFilter, setFloorFilter] = useState<FloorFilter>('All');
 
-    const renderContent = () => {
-        switch (activeTab) {
+    /* ── Derived ──────────────────────────────────────────── */
 
-            case 'Overview':
-                return (
-                    <motion.div key="overview" {...fade} className="space-y-6">
-                        {/* Welcome */}
-                        <div className="rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                            style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.1) 0%, rgba(180,30,30,0.08) 100%)', border: '1px solid rgba(16,185,129,0.15)' }}>
-                            <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full font-bold">Admin Access</span>
-                                    <span className="text-xs text-white/30">• Workshop Command · Thu 5 Mar, 2026</span>
-                                </div>
-                                <h1 className="text-2xl font-bold text-white">Welcome, Administrator 🔧</h1>
-                                <p className="text-white/40 text-sm mt-1">5 vehicles in workshop · 9 technicians on duty · Revenue target 84% achieved.</p>
-                            </div>
-                            <div className="flex gap-3 flex-shrink-0">
-                                <button className="btn-primary px-5 py-2 text-sm flex items-center gap-2"><UserPlus size={14} />Add Booking</button>
-                                <button className="btn-secondary px-5 py-2 text-sm flex items-center gap-2"><Download size={14} />Export</button>
-                            </div>
+    const openJobs = useMemo(
+        () => bookings
+            .filter(b => OPEN_STATUSES.includes(b.status))
+            .sort((a, b) => a.scheduledFor.localeCompare(b.scheduledFor)),
+        [bookings],
+    );
+
+    const inService = useMemo(
+        () => bookings.filter(b => b.status === 'In Service'),
+        [bookings],
+    );
+
+    const months = useMemo(() => monthlyTotals(records, 6), [records]);
+    const thisMonth = months[months.length - 1];
+    const previousMonth = months[months.length - 2];
+    const spark = useMemo(() => sparklinePath(months.map(m => m.total)), [months]);
+    const revenueMix = useMemo(() => shareByService(records, 3), [records]);
+    const workload = useMemo(() => technicianWorkload(records, bookings), [records, bookings]);
+
+    const topServices = useMemo(() => {
+        const shares = shareByService(records, 12);
+        const busiest = shares[0]?.total ?? 0;
+        return shares.slice(0, 5).map(share => ({
+            ...share,
+            bar: busiest === 0 ? 0 : Math.round((share.total / busiest) * 100),
+        }));
+    }, [records]);
+
+    const averageRating = useMemo(() => {
+        const rated = records.filter(r => r.rating !== null);
+        return rated.length
+            ? rated.reduce((sum, r) => sum + (r.rating ?? 0), 0) / rated.length
+            : null;
+    }, [records]);
+
+    /** Which bay holds what, derived from the jobs rather than typed in. */
+    const bayStatus = useMemo(() => BAYS.map(bay => {
+        const job = inService.find(b => b.bay === bay)
+            ?? openJobs.find(b => b.bay === bay);
+        return { bay, job };
+    }), [inService, openJobs]);
+
+    /** The workshop's recent movements, newest first. */
+    const activity = useMemo(() => {
+        const entries = [
+            ...records.map(record => ({
+                id: `rec-${record.id}`,
+                date: record.completedOn,
+                icon: CheckCircle2,
+                tone: 'success' as const,
+                text: `${record.serviceName} completed — ${customers.find(c => c.id === record.customerId)?.name ?? 'customer'} · ${formatRupees(record.cost)}`,
+            })),
+            ...bookings.map(booking => ({
+                id: `bk-${booking.id}`,
+                date: booking.scheduledFor,
+                icon: booking.status === 'Cancelled' ? XCircle
+                    : booking.status === 'In Service' ? Wrench : UserPlus,
+                tone: booking.status === 'Cancelled' ? 'warn' as const : 'info' as const,
+                text: `${booking.id} ${booking.status.toLowerCase()} — ${customers.find(c => c.id === booking.customerId)?.name ?? 'customer'} · ${booking.serviceName}`,
+            })),
+        ];
+        return entries
+            .sort((a, b) => b.date.localeCompare(a.date))
+            .slice(0, 7);
+    }, [records, bookings, customers]);
+
+    /**
+     * Customer search across the whole account, not just the name
+     * column: an advisor with a plate or a service in mind should not
+     * have to know whose car it is.
+     */
+    const searchIndex = useMemo(() => {
+        const index = new Map<string, string>();
+        for (const customer of customers) {
+            const theirVehicles = vehicles.filter(v => v.ownerId === customer.id);
+            const theirServices = [
+                ...bookings.filter(b => b.customerId === customer.id).map(b => b.serviceName),
+                ...records.filter(r => r.customerId === customer.id).map(r => r.serviceName),
+            ];
+            index.set(customer.id, [
+                customer.name, customer.email, customer.phone, customer.city, customer.plan,
+                ...theirVehicles.flatMap(v => [v.make, v.model, v.variant ?? '', v.registration, String(v.year), v.fuel]),
+                ...theirServices,
+            ].join(' ').toLowerCase());
+        }
+        return index;
+    }, [customers, vehicles, bookings, records]);
+
+    const query = debouncedSearch.trim().toLowerCase();
+
+    const visibleCustomers = useMemo(() => {
+        if (!query) return customers;
+        // Every whitespace-separated term has to match, so "aarav brake"
+        // narrows rather than widening to everything brake-related.
+        const terms = query.split(/\s+/);
+        return customers.filter(customer => {
+            const haystack = searchIndex.get(customer.id) ?? '';
+            return terms.every(term => haystack.includes(term));
+        });
+    }, [customers, query, searchIndex]);
+
+    const floorJobs = useMemo(
+        () => (floorFilter === 'All'
+            ? openJobs
+            : openJobs.filter(b => b.status === floorFilter)),
+        [openJobs, floorFilter],
+    );
+
+    /* ── Actions ──────────────────────────────────────────── */
+
+    const confirmRemoveCustomer = useCallback(async (customer: Customer) => {
+        await removeCustomer(customer.id);
+        showToast(`${customer.name} removed from the customer book.`);
+    }, [removeCustomer, showToast]);
+
+    const exportCustomers = useCallback(() => {
+        if (visibleCustomers.length === 0) {
+            showToast('There are no customers to export.', 'info');
+            return;
+        }
+        const ok = downloadCsv(
+            'autosphere-customers.csv',
+            visibleCustomers.map(customer => {
+                const theirRecords = records.filter(r => r.customerId === customer.id);
+                return {
+                    Name: customer.name,
+                    Email: customer.email,
+                    Phone: customer.phone,
+                    City: customer.city,
+                    Plan: customer.plan,
+                    Status: customer.status,
+                    Vehicles: vehicles.filter(v => v.ownerId === customer.id)
+                        .map(v => `${vehicleLabel(v)} (${v.registration})`).join('; '),
+                    Visits: theirRecords.length,
+                    'Total spend (INR)': theirRecords.reduce((sum, r) => sum + r.cost, 0),
+                };
+            }),
+            ['Name', 'Email', 'Phone', 'City', 'Plan', 'Status', 'Vehicles', 'Visits', 'Total spend (INR)'],
+        );
+        showToast(
+            ok ? `${visibleCustomers.length} customers exported.` : 'The download could not be started.',
+            ok ? 'success' : 'error',
+        );
+    }, [visibleCustomers, vehicles, records, showToast]);
+
+    const exportBookings = useCallback(() => {
+        if (bookings.length === 0) {
+            showToast('There are no bookings to export.', 'info');
+            return;
+        }
+        const ok = downloadCsv(
+            'autosphere-bookings.csv',
+            bookings.map(booking => ({
+                Reference: booking.id,
+                Customer: customers.find(c => c.id === booking.customerId)?.name ?? '',
+                Vehicle: vehicleLabel(vehicles.find(v => v.id === booking.vehicleId)),
+                Service: booking.serviceName,
+                Date: booking.scheduledFor,
+                Slot: booking.slot,
+                Bay: booking.bay ?? '',
+                Technician: booking.technician ?? '',
+                Status: booking.status,
+                'Estimate (INR)': booking.estimate,
+            })),
+            ['Reference', 'Customer', 'Vehicle', 'Service', 'Date', 'Slot', 'Bay',
+                'Technician', 'Status', 'Estimate (INR)'],
+        );
+        showToast(
+            ok ? `${bookings.length} bookings exported.` : 'The download could not be started.',
+            ok ? 'success' : 'error',
+        );
+    }, [bookings, customers, vehicles, showToast]);
+
+    const exportRevenue = useCallback(() => {
+        const ok = downloadCsv(
+            'autosphere-revenue.csv',
+            months.map(month => ({
+                Month: month.key,
+                'Revenue (INR)': month.total,
+                Jobs: month.count,
+                'Average per job (INR)': month.count === 0 ? 0 : Math.round(month.total / month.count),
+            })),
+            ['Month', 'Revenue (INR)', 'Jobs', 'Average per job (INR)'],
+        );
+        showToast(
+            ok ? 'Revenue report exported.' : 'The download could not be started.',
+            ok ? 'success' : 'error',
+        );
+    }, [months, showToast]);
+
+    /* ── Loading and failure ──────────────────────────────── */
+
+    if (status === 'loading') {
+        return (
+            <div className="bg-paper">
+                <DashboardTabs tabs={tabs} active={tab} onChange={setTab} idPrefix="admin" />
+                <div className="mx-auto max-w-7xl px-4 py-6 pb-12">
+                    <LoadingState label="Loading the workshop book…" />
+                    <Skeleton rows={4} />
+                </div>
+            </div>
+        );
+    }
+
+    if (status === 'error') {
+        return (
+            <div className="bg-paper">
+                <DashboardTabs tabs={tabs} active={tab} onChange={setTab} idPrefix="admin" />
+                <div className="mx-auto max-w-7xl px-4 py-6 pb-12">
+                    <ErrorState
+                        message={error ?? 'The workshop book could not be loaded.'}
+                        onRetry={reload}
+                    />
+                </div>
+            </div>
+        );
+    }
+
+    /* ── Sections ─────────────────────────────────────────── */
+
+    const renderOverview = () => {
+        const growth = previousMonth && previousMonth.total > 0
+            ? Math.round(((thisMonth.total - previousMonth.total) / previousMonth.total) * 100)
+            : null;
+
+        return (
+            <motion.div key="overview" {...fade} className="space-y-6">
+                {/* Banner — flat sand on a hairline, matching every panel */}
+                <div className="flex flex-col justify-between gap-4 rounded-sm border border-line bg-sand p-6 sm:flex-row sm:items-center">
+                    <div className="min-w-0">
+                        <div className="mb-1 flex flex-wrap items-center gap-2">
+                            <span className="rounded-full bg-clay-pale px-2 py-0.5 text-xs font-bold text-clay-ink">
+                                Admin access
+                            </span>
+                            <span className="text-xs text-muted">
+                                · Workshop command · {formatDate(new Date().toISOString())}
+                            </span>
+                        </div>
+                        <h1 className="text-2xl font-bold text-ink">Welcome, Administrator</h1>
+                        <p className="mt-1 text-sm text-muted">
+                            {inService.length} vehicle{inService.length === 1 ? '' : 's'} on the ramps ·{' '}
+                            {openJobs.length} open job{openJobs.length === 1 ? '' : 's'} ·{' '}
+                            {formatRupees(thisMonth.total)} invoiced this month.
+                        </p>
+                    </div>
+                    <div className="flex shrink-0 flex-wrap gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setDialog({ kind: 'booking-form' })}
+                            className="btn-primary px-5 py-2 text-sm"
+                        >
+                            <UserPlus size={14} aria-hidden="true" /> Add booking
+                        </button>
+                        <button type="button" onClick={exportBookings} className="btn-secondary px-5 py-2 text-sm">
+                            <Download size={14} aria-hidden="true" /> Export
+                        </button>
+                    </div>
+                </div>
+
+                {/* Stats */}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <StatCard
+                        icon={BarChart3} label="Revenue this month"
+                        value={formatRupeesCompact(thisMonth.total)}
+                        note={growth === null ? `${thisMonth.count} jobs invoiced` : `${growth >= 0 ? '+' : ''}${growth}% on last month`}
+                        onClick={() => setTab('Revenue')}
+                    />
+                    <StatCard
+                        icon={Bell} label="Open bookings" value={openJobs.length}
+                        note={`${inService.length} in service now`}
+                        onClick={() => setTab('Workshop Floor')}
+                    />
+                    <StatCard
+                        icon={Wrench} label="Technicians engaged"
+                        value={workload.filter(t => t.active > 0).length}
+                        note={`${workload.length} on the roster`}
+                        onClick={() => setTab('Technicians')}
+                    />
+                    <StatCard
+                        icon={Users} label="Average rating"
+                        value={averageRating === null ? '—' : `${averageRating.toFixed(1)} ★`}
+                        note={`${records.filter(r => r.rating !== null).length} rated visits`}
+                    />
+                </div>
+
+                {/* Queue + activity */}
+                <div className="grid gap-6 lg:grid-cols-3 [&>*]:min-w-0">
+                    <div className="panel min-w-0 p-6 lg:col-span-2">
+                        <div className="mb-5 flex items-center justify-between gap-3">
+                            <h2 className="font-bold text-ink">Live service queue</h2>
+                            <button
+                                type="button"
+                                onClick={() => setTab('Workshop Floor')}
+                                className="flex shrink-0 items-center gap-1 text-xs text-primary hover:underline"
+                            >
+                                View all <ChevronRight size={12} aria-hidden="true" />
+                            </button>
                         </div>
 
-                        {/* Stats */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            {[
-                                { icon: BarChart3, label: 'Monthly Revenue', value: '₹8.4L', sub: '+8.2% vs last month', col: 'text-primary' },
-                                { icon: Bell, label: 'Active Bookings', value: '48', sub: '12 live today', col: 'text-yellow-400' },
-                                { icon: Wrench, label: 'Technicians On Duty', value: '9', sub: '2 on break · 1 off', col: 'text-primary' },
-                                { icon: Users, label: 'Satisfaction Score', value: '97%', sub: '↑ from 94% last month', col: 'text-primary' },
-                            ].map(s => (
-                                <div key={s.label} className="glass-card p-5 border-white/5 hover:border-primary/20 transition-colors">
-                                    <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center mb-3"><s.icon size={17} className="text-primary" /></div>
-                                    <div className="text-2xl font-bold text-white">{s.value}</div>
-                                    <div className="text-[10px] text-white/30 uppercase tracking-widest mt-0.5">{s.label}</div>
-                                    <div className={`text-xs ${s.col} mt-1`}>{s.sub}</div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Queue + Activity */}
-                        <div className="grid lg:grid-cols-3 gap-6">
-                            <div className="lg:col-span-2 glass-card p-6">
-                                <div className="flex items-center justify-between mb-5">
-                                    <h2 className="font-bold text-white">Live Service Queue</h2>
-                                    <button className="text-xs text-primary hover:underline flex items-center gap-1">View all <ChevronRight size={12} /></button>
-                                </div>
-                                <div className="space-y-3">
-                                    {serviceQueue.map(s => (
-                                        <div key={s.id} className="flex items-center justify-between p-3 rounded-xl bg-white/3 hover:bg-white/5 transition-colors gap-3">
-                                            <div className="flex items-center gap-3 min-w-0">
-                                                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${s.status === 'Completed' ? 'bg-primary' : s.status === 'In Progress' ? 'bg-yellow-400' : 'bg-white/20'}`} />
+                        {openJobs.length === 0 ? (
+                            <EmptyState
+                                icon={CheckCircle2}
+                                title="The floor is clear"
+                                message="No job is waiting, confirmed or in service right now."
+                                action={
+                                    <button
+                                        type="button"
+                                        onClick={() => setDialog({ kind: 'booking-form' })}
+                                        className="btn-primary px-5 py-2.5 text-sm"
+                                    >
+                                        Add a booking
+                                    </button>
+                                }
+                            />
+                        ) : (
+                            <ul className="space-y-3">
+                                {openJobs.slice(0, 6).map(job => {
+                                    const customer = customers.find(c => c.id === job.customerId);
+                                    const vehicle = vehicles.find(v => v.id === job.vehicleId);
+                                    return (
+                                        <li
+                                            key={job.id}
+                                            className="flex flex-wrap items-center justify-between gap-3 rounded-sm bg-sand px-3 py-3"
+                                        >
+                                            <div className="flex min-w-0 items-center gap-3">
+                                                <span
+                                                    aria-hidden="true"
+                                                    className={`h-2 w-2 shrink-0 rounded-full ${job.status === 'In Service' ? 'bg-clay' : job.status === 'Confirmed' ? 'bg-primary' : 'bg-sand-deep'}`}
+                                                />
                                                 <div className="min-w-0">
-                                                    <div className="text-sm font-medium text-white truncate">{s.customer}</div>
-                                                    <div className="text-xs text-white/30 truncate">{s.id} · {s.service} · {s.tech}</div>
+                                                    <p className="truncate text-sm font-medium text-ink">
+                                                        {customer?.name ?? 'Unknown customer'}
+                                                    </p>
+                                                    <p className="truncate text-xs text-muted">
+                                                        {job.id} · {job.serviceName} · {vehicleLabel(vehicle)}
+                                                        {job.technician ? ` · ${job.technician}` : ''}
+                                                    </p>
                                                 </div>
                                             </div>
-                                            <div className="text-right flex-shrink-0">
-                                                <div className="text-xs text-white/50">{s.bay} · ETA {s.eta}</div>
-                                                <div className={`text-xs font-bold ${s.status === 'Completed' ? 'text-primary' : s.status === 'In Progress' ? 'text-yellow-400' : 'text-white/40'}`}>{s.status}</div>
+                                            <div className="flex shrink-0 items-center gap-3">
+                                                <span className="hidden text-xs text-muted sm:inline">
+                                                    {job.bay ?? 'No bay'} · {formatRelativeDay(job.scheduledFor)}
+                                                </span>
+                                                <BookingStatusSelect booking={job} />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setDialog({ kind: 'job', booking: job })}
+                                                    className="text-xs text-primary hover:underline"
+                                                >
+                                                    Update<span className="sr-only"> {job.id}</span>
+                                                </button>
                                             </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="glass-card p-6">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h2 className="font-bold text-white">Activity Log</h2>
-                                    <button className="text-xs text-primary hover:underline">View all →</button>
-                                </div>
-                                <div className="space-y-4">
-                                    {activityLog.map((a, i) => (
-                                        <div key={i} className="flex gap-3 items-start">
-                                            <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${a.type === 'success' ? 'bg-primary/10' : a.type === 'warn' ? 'bg-yellow-400/10' : 'bg-white/5'}`}>
-                                                <a.icon size={12} className={a.type === 'success' ? 'text-primary' : a.type === 'warn' ? 'text-yellow-400' : 'text-white/40'} />
-                                            </div>
-                                            <div>
-                                                <div className="text-xs text-white/70 leading-snug">{a.text}</div>
-                                                <div className="text-[10px] text-white/25 mt-0.5">{a.time}</div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Bay Status + Quick Actions + System Health */}
-                        <div className="grid lg:grid-cols-3 gap-6">
-                            <div className="glass-card p-6">
-                                <h2 className="font-bold text-white mb-4">Bay Status</h2>
-                                <div className="space-y-2.5">
-                                    {[
-                                        { l: 'Bay 1 — Rajan K.', c: 'text-yellow-400', s: 'Occupied' },
-                                        { l: 'Bay 2 — Suresh P.', c: 'text-yellow-400', s: 'Occupied' },
-                                        { l: 'Bay 3 — Amit D.', c: 'text-yellow-400', s: 'Occupied' },
-                                        { l: 'Bay 4 — Karan M.', c: 'text-yellow-400', s: 'Occupied' },
-                                        { l: 'Bay 5 — Deepak S.', c: 'text-yellow-400', s: 'Occupied' },
-                                        { l: 'Bay 6 — Maintenance', c: 'text-red-400', s: 'Offline' },
-                                        { l: 'Bay 7 — Empty', c: 'text-primary', s: 'Free' },
-                                    ].map(item => (
-                                        <div key={item.l} className="flex justify-between text-sm">
-                                            <span className="text-white/50">{item.l}</span>
-                                            <span className={`text-xs font-bold ${item.c}`}>{item.s}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="glass-card p-6">
-                                <h2 className="font-bold text-white mb-4">Quick Actions</h2>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {[
-                                        { icon: UserPlus, label: 'Add Customer' },
-                                        { icon: FileText, label: 'Reports' },
-                                        { icon: Package, label: 'Inventory' },
-                                        { icon: Bell, label: 'Alerts' },
-                                        { icon: MessageSquare, label: 'Messages' },
-                                        { icon: Settings, label: 'Settings' },
-                                    ].map(a => (
-                                        <button key={a.label} className="flex flex-col items-center gap-2 p-3 rounded-xl bg-white/3 hover:bg-primary/10 border border-white/5 hover:border-primary/30 transition-all group">
-                                            <a.icon size={18} className="text-white/30 group-hover:text-primary transition-colors" />
-                                            <span className="text-xs text-white/40 group-hover:text-white">{a.label}</span>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="glass-card p-6">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h2 className="font-bold text-white">System Health</h2>
-                                    <span className="text-xs text-primary font-bold">Mostly Operational</span>
-                                </div>
-                                <div className="space-y-3">
-                                    {[
-                                        { l: 'Diagnostic Network', s: '99.98%', ok: true },
-                                        { l: 'Booking Database', s: '99.97%', ok: true },
-                                        { l: 'Payment Gateway', s: '100%', ok: true },
-                                        { l: 'Client Portal', s: '100%', ok: true },
-                                        { l: 'Bay 6 Equipment', s: 'Degraded', ok: false },
-                                        { l: 'CCTV System', s: 'Operational', ok: true },
-                                    ].map(s => (
-                                        <div key={s.l} className="flex items-center justify-between text-sm">
-                                            <div className="flex items-center gap-2">
-                                                <div className={`w-1.5 h-1.5 rounded-full ${s.ok ? 'bg-primary' : 'bg-yellow-400'}`} />
-                                                <span className="text-white/50">{s.l}</span>
-                                            </div>
-                                            <span className={`text-xs font-bold ${s.ok ? 'text-primary' : 'text-yellow-400'}`}>{s.s}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* ── Infographics Row ── */}
-                        <div className="grid sm:grid-cols-3 gap-5">
-
-                            {/* Donut — Revenue Source */}
-                            <div className="glass-card p-6 flex flex-col items-center">
-                                <h3 className="text-white font-bold text-sm mb-4 self-start">Revenue by Source</h3>
-                                <svg viewBox="0 0 120 120" className="w-28 h-28" style={{ transform: 'rotate(-90deg)' }}>
-                                    <circle cx="60" cy="60" r="45" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="14" />
-                                    {/* ECU/Performance 40% */}
-                                    <circle cx="60" cy="60" r="45" fill="none" stroke="#10b981" strokeWidth="14"
-                                        strokeDasharray={`${40 * 2.827} ${Math.round((100 - 40) * 2.827)}`} strokeLinecap="round" />
-                                    {/* Maintenance 35% */}
-                                    <circle cx="60" cy="60" r="45" fill="none" stroke="rgba(16,185,129,0.4)" strokeWidth="14"
-                                        strokeDasharray={`${35 * 2.827} ${Math.round((100 - 35) * 2.827)}`}
-                                        strokeDashoffset={`-${40 * 2.827}`} strokeLinecap="round" />
-                                    {/* Detailing 25% */}
-                                    <circle cx="60" cy="60" r="45" fill="none" stroke="rgba(16,185,129,0.15)" strokeWidth="14"
-                                        strokeDasharray={`${25 * 2.827} ${Math.round((100 - 25) * 2.827)}`}
-                                        strokeDashoffset={`-${(40 + 35) * 2.827}`} strokeLinecap="round" />
-                                </svg>
-                                <div className="space-y-1.5 w-full mt-3">
-                                    {[
-                                        { c: 'bg-primary', l: 'ECU / Performance', v: '40%' },
-                                        { c: 'bg-primary/40', l: 'Maintenance', v: '35%' },
-                                        { c: 'bg-primary/15', l: 'Detailing', v: '25%' },
-                                    ].map(d => (
-                                        <div key={d.l} className="flex items-center justify-between text-xs">
-                                            <div className="flex items-center gap-2"><div className={`w-2 h-2 rounded-full ${d.c}`} /><span className="text-white/40">{d.l}</span></div>
-                                            <span className="text-white/60 font-bold">{d.v}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Sparkline — Revenue Trend */}
-                            <div className="glass-card p-6">
-                                <h3 className="text-white font-bold text-sm mb-1">Revenue Trend</h3>
-                                <p className="text-xs text-white/30 mb-4">Oct 2025 – Mar 2026</p>
-                                <svg viewBox="0 0 200 70" className="w-full" preserveAspectRatio="none">
-                                    <defs>
-                                        <linearGradient id="adminSparkGrad" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stopColor="#10b981" stopOpacity="0.35" />
-                                            <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
-                                        </linearGradient>
-                                    </defs>
-                                    <path d="M0,62 L40,52 L80,40 L120,44 L160,20 L200,8"
-                                        fill="none" stroke="#10b981" strokeWidth="2.5"
-                                        strokeLinecap="round" strokeLinejoin="round" />
-                                    <path d="M0,62 L40,52 L80,40 L120,44 L160,20 L200,8 L200,70 L0,70 Z"
-                                        fill="url(#adminSparkGrad)" />
-                                    {[[0, 62], [40, 52], [80, 40], [120, 44], [160, 20], [200, 8]].map(([x, y], i) => (
-                                        <circle key={i} cx={x} cy={y} r="3.5" fill="#10b981" />
-                                    ))}
-                                </svg>
-                                <div className="flex justify-between text-[10px] text-white/20 mt-1">
-                                    {['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'].map(m => <span key={m}>{m}</span>)}
-                                </div>
-                                <div className="mt-3 flex items-center gap-2">
-                                    <div className="text-xl font-bold text-primary">₹8.4L</div>
-                                    <div className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full">↑ Record month</div>
-                                </div>
-                            </div>
-
-                            {/* Technician Workload */}
-                            <div className="glass-card p-6">
-                                <h3 className="text-white font-bold text-sm mb-5">Technician Workload</h3>
-                                <div className="space-y-3.5">
-                                    {[
-                                        { name: 'Rajan K.', pct: 95 },
-                                        { name: 'Suresh P.', pct: 82 },
-                                        { name: 'Amit D.', pct: 78 },
-                                        { name: 'Karan M.', pct: 60 },
-                                        { name: 'Pooja S.', pct: 100 },
-                                    ].map(t => (
-                                        <div key={t.name}>
-                                            <div className="flex justify-between text-xs mb-1">
-                                                <span className="text-white/50">{t.name}</span>
-                                                <span className={`font-bold ${t.pct >= 90 ? 'text-yellow-400' : 'text-primary'}`}>{t.pct}%</span>
-                                            </div>
-                                            <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                                <motion.div
-                                                    initial={{ width: 0 }}
-                                                    animate={{ width: `${t.pct}%` }}
-                                                    transition={{ duration: 1, ease: 'easeOut' }}
-                                                    className={`h-full rounded-full ${t.pct >= 90 ? 'bg-yellow-400' : 'bg-primary'}`}
-                                                />
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Top Services */}
-                        <div className="glass-card p-6">
-                            <div className="flex items-center justify-between mb-5">
-                                <h2 className="font-bold text-white">Top Services This Month</h2>
-                                <span className="text-xs text-white/30">Mar 2026</span>
-                            </div>
-                            <div className="space-y-4">
-                                {topServices.map(svc => (
-                                    <div key={svc.name}>
-                                        <div className="flex justify-between items-center mb-1.5">
-                                            <span className="text-white/70 text-sm">{svc.name}</span>
-                                            <div className="flex items-center gap-4 text-xs">
-                                                <span className="text-white/30">{svc.count} jobs</span>
-                                                <span className="text-primary font-bold">{svc.revenue}</span>
-                                            </div>
-                                        </div>
-                                        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                            <motion.div
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${svc.pct}%` }}
-                                                transition={{ duration: 1, ease: 'easeOut' }}
-                                                className="h-full bg-gradient-to-r from-primary/60 to-primary rounded-full"
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </motion.div>
-                );
-
-            case 'Customers':
-                return (
-                    <motion.div key="customers" {...fade} className="space-y-5">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h2 className="text-xl font-bold text-white">Customer Management</h2>
-                                <p className="text-xs text-white/30 mt-0.5">6 customers shown · 4 active</p>
-                            </div>
-                            <button className="btn-primary px-4 py-2 text-sm flex items-center gap-2"><UserPlus size={14} />Add Customer</button>
-                        </div>
-
-                        {/* Summary */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            {[
-                                { label: 'Total Customers', value: '214' },
-                                { label: 'Active This Month', value: '48' },
-                                { label: 'Premium Members', value: '91' },
-                            ].map(s => (
-                                <div key={s.label} className="glass-card p-5 text-center">
-                                    <div className="text-2xl font-bold text-primary">{s.value}</div>
-                                    <div className="text-xs text-white/30 mt-1">{s.label}</div>
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="glass-card p-6">
-                            <div className="flex items-center gap-3 mb-5">
-                                <div className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-xl border border-white/10 flex-1 max-w-xs">
-                                    <Search size={14} className="text-white/30" />
-                                    <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search customer..." className="bg-transparent text-white text-sm outline-none w-full placeholder:text-white/20" />
-                                </div>
-                                <button className="btn-secondary px-4 py-2 text-xs flex items-center gap-1"><Download size={12} />Export</button>
-                            </div>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
-                                    <thead><tr className="text-[10px] uppercase tracking-widest text-white/20 border-b border-white/5">
-                                        <th className="text-left pb-3">Customer</th>
-                                        <th className="text-left pb-3">Vehicle</th>
-                                        <th className="text-left pb-3">Last Visit</th>
-                                        <th className="text-center pb-3">Visits</th>
-                                        <th className="text-right pb-3">Total Spent</th>
-                                        <th className="text-left pb-3">Plan</th>
-                                        <th className="text-left pb-3">Status</th>
-                                        <th className="text-right pb-3">Action</th>
-                                    </tr></thead>
-                                    <tbody>
-                                        {allCustomers.filter(c => c.name.toLowerCase().includes(search.toLowerCase())).map(c => (
-                                            <tr key={c.name} className="border-b border-white/3 hover:bg-white/3 transition-colors">
-                                                <td className="py-3"><div className="flex items-center gap-2"><div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">{c.name[0]}</div><span className="text-white font-medium">{c.name}</span></div></td>
-                                                <td className="py-3 text-white/50">{c.vehicle}</td>
-                                                <td className="py-3 text-white/50">{c.date}</td>
-                                                <td className="py-3 text-center text-white/60 font-mono">{c.visits}</td>
-                                                <td className="py-3 text-right text-primary font-semibold">{c.spent}</td>
-                                                <td className="py-3"><span className={`text-xs px-2 py-0.5 rounded-full font-bold ${c.plan === 'Premium' ? 'bg-primary/20 text-primary' : 'bg-white/10 text-white/50'}`}>{c.plan}</span></td>
-                                                <td className="py-3"><span className={`text-xs font-bold ${c.status === 'Active' ? 'text-primary' : c.status === 'Inactive' ? 'text-red-400' : 'text-white/30'}`}>● {c.status}</span></td>
-                                                <td className="py-3 text-right">
-                                                    <button className="text-xs px-3 py-1 rounded-lg bg-white/5 hover:bg-primary/10 hover:text-primary text-white/50 transition-colors mr-1">Edit</button>
-                                                    <button className="text-xs px-3 py-1 rounded-lg bg-white/5 hover:bg-red-500/10 hover:text-red-400 text-white/50 transition-colors">Remove</button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </motion.div>
-                );
-
-            case 'Technicians':
-                return (
-                    <motion.div key="technicians" {...fade} className="space-y-5">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h2 className="text-xl font-bold text-white">Technician Management</h2>
-                                <p className="text-xs text-white/30 mt-0.5">6 technicians · 4 on duty today</p>
-                            </div>
-                            <button className="btn-primary px-4 py-2 text-sm flex items-center gap-2"><UserPlus size={14} />Add Technician</button>
-                        </div>
-
-                        {/* Summary */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            {[
-                                { label: 'On Duty', value: '4' },
-                                { label: 'On Break', value: '1' },
-                                { label: 'Off Today', value: '1' },
-                                { label: 'Avg. Rating', value: '4.8★' },
-                            ].map(s => (
-                                <div key={s.label} className="glass-card p-4 text-center">
-                                    <div className="text-xl font-bold text-primary">{s.value}</div>
-                                    <div className="text-xs text-white/30 mt-1">{s.label}</div>
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {technicians.map(t => (
-                                <div key={t.name} className="glass-card p-5 border-white/5 hover:border-primary/30 transition-colors">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">{t.name[0]}</div>
-                                            <div>
-                                                <div className="text-white font-semibold text-sm">{t.name}</div>
-                                                <div className="text-xs text-primary">{t.role}</div>
-                                            </div>
-                                        </div>
-                                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${t.status === 'On Duty' ? 'bg-primary/10 text-primary' : t.status === 'On Break' ? 'bg-yellow-400/10 text-yellow-400' : 'bg-white/5 text-white/30'}`}>{t.status}</span>
-                                    </div>
-                                    <div className="text-xs text-white/40 mb-3">{t.specialty}</div>
-                                    <div className="space-y-2 pt-3 border-t border-white/5 text-xs">
-                                        <div className="flex justify-between"><span className="text-white/30">Services completed</span><span className="text-white font-bold">{t.services}</span></div>
-                                        <div className="flex justify-between"><span className="text-white/30">Rating</span>
-                                            <span className="text-yellow-400 font-bold flex items-center gap-1"><Star size={10} className="fill-yellow-400" />{t.rating}</span>
-                                        </div>
-                                        <div className="flex justify-between"><span className="text-white/30">Current job</span><span className="text-primary font-mono">{t.currentJob}</span></div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </motion.div>
-                );
-
-            case 'Revenue':
-                return (
-                    <motion.div key="revenue" {...fade} className="space-y-5">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h2 className="text-xl font-bold text-white">Revenue Overview</h2>
-                                <p className="text-xs text-white/30 mt-0.5">Financial year Oct 2025 – Mar 2026</p>
-                            </div>
-                            <button className="btn-secondary px-4 py-2 text-sm flex items-center gap-2"><Download size={14} />Export Report</button>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            {[
-                                { label: 'Total Revenue (6M)', value: '₹41.4L', up: true },
-                                { label: 'This Month', value: '₹8.4L', up: true },
-                                { label: 'Avg. Per Job', value: '₹17,500', up: null },
-                                { label: 'Outstanding', value: '₹0', up: null },
-                            ].map(s => (
-                                <div key={s.label} className="glass-card p-5">
-                                    <div className="text-2xl font-bold text-white">{s.value}</div>
-                                    <div className="text-xs text-white/30 mt-1">{s.label}</div>
-                                    {s.up && <div className="text-xs text-primary font-bold mt-2">↑ Growing</div>}
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Bar Chart Visual */}
-                        <div className="glass-card p-6">
-                            <h3 className="font-bold text-white mb-6">Monthly Revenue Bar</h3>
-                            <div className="flex items-end gap-4 h-40">
-                                {revenueMonths.map((m, i) => {
-                                    const vals = [5.2, 6.1, 7.0, 6.8, 7.9, 8.4];
-                                    const maxV = Math.max(...vals);
-                                    const hPct = (vals[i] / maxV) * 100;
-                                    return (
-                                        <div key={m.month} className="flex-1 flex flex-col items-center gap-2">
-                                            <div className="text-xs text-primary font-bold">{m.revenue}</div>
-                                            <motion.div
-                                                initial={{ height: 0 }}
-                                                animate={{ height: `${hPct}%` }}
-                                                transition={{ duration: 0.8, delay: i * 0.1, ease: 'easeOut' }}
-                                                className={`w-full rounded-t-lg ${i === revenueMonths.length - 1 ? 'bg-primary' : 'bg-primary/30'}`}
-                                            />
-                                            <div className="text-xs text-white/30">{m.month}</div>
-                                        </div>
+                                        </li>
                                     );
                                 })}
-                            </div>
-                        </div>
+                            </ul>
+                        )}
+                    </div>
 
-                        <div className="glass-card p-6">
-                            <h3 className="font-bold text-white mb-5">Monthly Breakdown</h3>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
-                                    <thead><tr className="text-[10px] uppercase tracking-widest text-white/20 border-b border-white/5">
-                                        <th className="text-left pb-3">Month</th>
-                                        <th className="text-right pb-3">Revenue</th>
-                                        <th className="text-right pb-3">Jobs</th>
-                                        <th className="text-right pb-3">Avg/Job</th>
-                                        <th className="text-right pb-3">Growth</th>
-                                    </tr></thead>
-                                    <tbody>
-                                        {revenueMonths.map((m) => (
-                                            <tr key={m.month} className="border-b border-white/3 hover:bg-white/3 transition-colors">
-                                                <td className="py-3 text-white font-medium">{m.month} 2026</td>
-                                                <td className="py-3 text-primary font-bold text-right">{m.revenue}</td>
-                                                <td className="py-3 text-white/50 text-right">{m.jobs} jobs</td>
-                                                <td className="py-3 text-white/40 text-right font-mono text-xs">
-                                                    {`₹${Math.round((parseFloat(m.revenue.replace('₹', '').replace('L', '')) * 100000) / m.jobs / 1000)}k`}
-                                                </td>
-                                                <td className="py-3 text-right">
-                                                    <span className={`text-xs font-bold ${m.growth?.startsWith('-') ? 'text-red-400' : m.growth ? 'text-primary' : 'text-white/30'}`}>
-                                                        {m.growth ?? '—'}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </motion.div>
-                );
-
-            case 'Vehicles':
-                return (
-                    <motion.div key="ws-vehicles" {...fade} className="space-y-5">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h2 className="text-xl font-bold text-white">Vehicles in Workshop</h2>
-                                <p className="text-xs text-white/30 mt-0.5">{workshopVehicles.length} active vehicles · 1 ready for pickup</p>
-                            </div>
-                            <span className="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full font-bold">{workshopVehicles.length} Active</span>
-                        </div>
-
-                        {/* Status Summary */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            {[
-                                { label: 'In Service', value: '3', color: 'text-yellow-400' },
-                                { label: 'Awaiting Parts', value: '1', color: 'text-red-400' },
-                                { label: 'Ready for Pickup', value: '1', color: 'text-primary' },
-                            ].map(s => (
-                                <div key={s.label} className="glass-card p-5 text-center">
-                                    <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
-                                    <div className="text-xs text-white/30 mt-1">{s.label}</div>
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="space-y-3">
-                            {workshopVehicles.map(v => (
-                                <div key={v.reg} className="glass-card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-primary/20 transition-colors">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0"><Car size={22} className="text-primary" /></div>
-                                        <div>
-                                            <div className="text-white font-semibold">{v.name}</div>
-                                            <div className="text-xs text-white/30 mt-0.5">{v.reg} · Owner: {v.owner}</div>
-                                            <div className="flex items-center gap-3 mt-1">
-                                                <span className="text-xs text-white/20">{v.bay}</span>
-                                                <span className="text-xs text-white/20">·</span>
-                                                <span className="text-xs text-primary">{v.service}</span>
-                                            </div>
+                    <div className="panel p-6">
+                        <h2 className="mb-4 font-bold text-ink">Activity</h2>
+                        {activity.length === 0 ? (
+                            <p className="text-[0.875rem] text-muted">Nothing has moved yet.</p>
+                        ) : (
+                            <ul className="space-y-4">
+                                {activity.map(entry => (
+                                    <li key={entry.id} className="flex items-start gap-3">
+                                        <span
+                                            className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${entry.tone === 'success' ? 'bg-forest-pale' : entry.tone === 'warn' ? 'bg-clay-pale' : 'bg-sand'}`}
+                                        >
+                                            <entry.icon
+                                                size={12}
+                                                className={entry.tone === 'success' ? 'text-primary' : entry.tone === 'warn' ? 'text-clay-ink' : 'text-muted'}
+                                                aria-hidden="true"
+                                            />
+                                        </span>
+                                        <div className="min-w-0">
+                                            <p className="text-xs leading-snug text-ink-soft">{entry.text}</p>
+                                            <p className="mt-0.5 text-[10px] text-faint">{formatRelativeDay(entry.date)}</p>
                                         </div>
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                        <div className="text-right">
-                                            <div className={`text-xs font-bold ${v.status === 'Ready for Pickup' ? 'text-primary' : v.status === 'In Service' ? 'text-yellow-400' : 'text-red-400'}`}>{v.status}</div>
-                                            <div className="text-xs text-white/30 mt-0.5">ETA: {v.eta}</div>
-                                        </div>
-                                        <button className="btn-secondary text-xs px-4 py-2">Update</button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </motion.div>
-                );
-
-            case 'Settings':
-                return (
-                    <motion.div key="admin-settings" {...fade} className="space-y-5 max-w-2xl">
-                        <h2 className="text-xl font-bold text-white">System Settings</h2>
-
-                        <div className="glass-card p-6 space-y-5">
-                            <h3 className="text-white font-semibold border-b border-white/5 pb-3">Workshop Info</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {[
-                                    { l: 'Workshop Name', v: 'AutoSphere HQ' },
-                                    { l: 'Contact Number', v: '+91 22 1234 5678' },
-                                    { l: 'Email', v: 'admin@autosphere.in' },
-                                    { l: 'City', v: 'Mumbai' },
-                                    { l: 'Total Bays', v: '7' },
-                                    { l: 'Working Hours', v: '8:00 AM – 8:00 PM' },
-                                ].map(f => (
-                                    <div key={f.l}>
-                                        <label className="text-xs text-white/40 mb-1.5 block">{f.l}</label>
-                                        <input defaultValue={f.v} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors" />
-                                    </div>
+                                    </li>
                                 ))}
-                            </div>
-                            <button className="btn-primary px-6 py-2 text-sm">Save Changes</button>
-                        </div>
+                            </ul>
+                        )}
+                    </div>
+                </div>
 
-                        <div className="glass-card p-6 space-y-4">
-                            <h3 className="text-white font-semibold border-b border-white/5 pb-3">System Alerts</h3>
-                            {[
-                                'Email alerts for new bookings',
-                                'SMS when bay status changes',
-                                'Daily revenue summary report',
-                                'Low inventory notifications',
-                                'Technician shift reminders',
-                            ].map(n => (
-                                <label key={n} className="flex items-center justify-between cursor-pointer py-0.5">
-                                    <span className="text-white/60 text-sm">{n}</span>
-                                    <div className="w-10 h-5 bg-primary/30 rounded-full relative"><div className="w-4 h-4 bg-primary rounded-full absolute top-0.5 right-0.5" /></div>
-                                </label>
+                {/* Bays + quick actions */}
+                <div className="grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
+                    <div className="panel p-6">
+                        <h2 className="mb-4 font-bold text-ink">Bay status</h2>
+                        <ul className="space-y-2.5">
+                            {bayStatus.map(({ bay, job }) => (
+                                <li key={bay} className="flex items-center justify-between gap-3 text-sm">
+                                    <span className="min-w-0 truncate text-muted">
+                                        {bay}
+                                        {job ? ` — ${job.technician ?? 'unassigned'}` : ''}
+                                    </span>
+                                    {job ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => setDialog({ kind: 'job', booking: job })}
+                                            className="shrink-0 text-xs font-bold text-clay-ink hover:underline"
+                                        >
+                                            {job.id}
+                                        </button>
+                                    ) : (
+                                        <span className="shrink-0 text-xs font-bold text-primary">Free</span>
+                                    )}
+                                </li>
                             ))}
-                        </div>
+                        </ul>
+                    </div>
 
-                        <div className="glass-card p-6 space-y-4">
-                            <h3 className="text-white font-semibold border-b border-white/5 pb-3">Integrations</h3>
+                    <div className="panel p-6">
+                        <h2 className="mb-4 font-bold text-ink">Quick actions</h2>
+                        <div className="grid grid-cols-2 gap-3">
                             {[
-                                { icon: Cpu, label: 'Bosch ESI Diagnostic Suite', status: 'Connected' },
-                                { icon: Shield, label: 'CRM & Customer Portal', status: 'Connected' },
-                                { icon: Zap, label: 'Inventory Management System', status: 'Pending' },
-                            ].map(item => (
-                                <div key={item.label} className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                                            <item.icon size={14} className="text-primary" />
-                                        </div>
-                                        <span className="text-white/60 text-sm">{item.label}</span>
-                                    </div>
-                                    <span className={`text-xs font-bold ${item.status === 'Connected' ? 'text-primary' : 'text-yellow-400'}`}>{item.status}</span>
-                                </div>
+                                { icon: UserPlus, label: 'New booking', run: () => setDialog({ kind: 'booking-form' }) },
+                                { icon: Users, label: 'Add customer', run: () => setDialog({ kind: 'customer-form', customer: null }) },
+                                { icon: FileText, label: 'Export bookings', run: exportBookings },
+                                { icon: Settings, label: 'Workshop settings', run: () => setTab('Settings') },
+                            ].map(action => (
+                                <button
+                                    key={action.label}
+                                    type="button"
+                                    onClick={action.run}
+                                    className="group flex flex-col items-center gap-2 rounded-sm border border-line bg-sand p-3 text-center transition-all hover:border-forest hover:bg-forest-pale"
+                                >
+                                    <action.icon size={18} className="text-muted transition-colors group-hover:text-primary" aria-hidden="true" />
+                                    <span className="text-xs text-muted group-hover:text-ink">{action.label}</span>
+                                </button>
                             ))}
-                        </div>
-                    </motion.div>
-                );
-
-            default:
-                return null;
-        }
-    };
-
-    return (
-        <div className="bg-secondary">
-            {/* Tab Bar */}
-            <div className="border-b border-white/5 bg-secondary/95 backdrop-blur-sm sticky top-[96px] z-10">
-                <div className="max-w-7xl mx-auto px-4">
-                    <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
-                        {tabs.map((tab) => (
-                            <button
-                                key={tab.label}
-                                onClick={() => setActiveTab(tab.label)}
-                                className={`flex items-center gap-2 px-4 py-3.5 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${activeTab === tab.label ? 'border-primary text-primary' : 'border-transparent text-white/40 hover:text-white'}`}
-                            >
-                                <tab.icon size={15} />
-                                {tab.label}
-                            </button>
-                        ))}
-                        <div className="ml-auto flex items-center gap-3 py-2 pl-4 flex-shrink-0">
-                            <button className="btn-primary px-4 py-2 text-xs flex items-center gap-1.5"><UserPlus size={13} />Add Booking</button>
-                            <button className="btn-secondary px-4 py-2 text-xs flex items-center gap-1.5"><Download size={13} />Export</button>
                         </div>
                     </div>
                 </div>
+
+                {/* Infographics — 3-up from 1024px only; at 768px the donut
+                    and its legend had about 190px to share. */}
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="panel flex flex-col items-center p-6">
+                        <h3 className="mb-4 self-start text-sm font-bold text-ink">Revenue by service</h3>
+                        {revenueMix.length === 0 ? (
+                            <p className="py-8 text-center text-[0.875rem] text-muted">Nothing invoiced yet.</p>
+                        ) : (
+                            <>
+                                <svg
+                                    viewBox="0 0 120 120" className="h-28 w-28" style={{ transform: 'rotate(-90deg)' }}
+                                    role="img"
+                                    aria-label={`Revenue by service: ${revenueMix.map(m => `${m.name} ${m.pct}%`).join(', ')}`}
+                                >
+                                    <circle cx="60" cy="60" r={DONUT_RADIUS} fill="none" stroke="rgba(23,26,24,0.08)" strokeWidth="14" />
+                                    {revenueMix.map((slice, i) => {
+                                        const offset = revenueMix.slice(0, i).reduce((sum, s) => sum + s.pct, 0);
+                                        const length = (slice.pct / 100) * DONUT_CIRCUMFERENCE;
+                                        const shades = ['#183f35', 'rgba(24,63,53,0.45)', 'rgba(24,63,53,0.18)'];
+                                        return (
+                                            <circle
+                                                key={slice.name}
+                                                cx="60" cy="60" r={DONUT_RADIUS} fill="none"
+                                                stroke={shades[i % shades.length]} strokeWidth="14"
+                                                strokeDasharray={`${length} ${DONUT_CIRCUMFERENCE - length}`}
+                                                strokeDashoffset={`-${(offset / 100) * DONUT_CIRCUMFERENCE}`}
+                                            />
+                                        );
+                                    })}
+                                </svg>
+                                <dl className="mt-3 w-full space-y-1.5">
+                                    {revenueMix.map((slice, i) => (
+                                        <div key={slice.name} className="flex items-center justify-between gap-2 text-xs">
+                                            <dt className="flex min-w-0 items-center gap-2">
+                                                <span
+                                                    aria-hidden="true"
+                                                    className={`h-2 w-2 shrink-0 rounded-full ${['bg-primary', 'bg-primary/45', 'bg-forest-pale'][i % 3]}`}
+                                                />
+                                                <span className="truncate text-muted">{slice.name}</span>
+                                            </dt>
+                                            <dd className="shrink-0 font-bold text-ink-soft">{slice.pct}%</dd>
+                                        </div>
+                                    ))}
+                                </dl>
+                            </>
+                        )}
+                    </div>
+
+                    <div className="panel p-6">
+                        <h3 className="mb-1 text-sm font-bold text-ink">Revenue trend</h3>
+                        <p className="mb-4 text-xs text-muted">
+                            {months[0].label} – {thisMonth.label}
+                        </p>
+                        <svg
+                            viewBox="0 0 200 70" className="w-full" preserveAspectRatio="none"
+                            role="img"
+                            aria-label={`Revenue by month: ${months.map(m => `${m.label} ${formatRupees(m.total)}`).join(', ')}`}
+                        >
+                            <defs>
+                                <linearGradient id="adminSpark" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="#183f35" stopOpacity="0.35" />
+                                    <stop offset="100%" stopColor="#183f35" stopOpacity="0" />
+                                </linearGradient>
+                            </defs>
+                            <path d={spark.area} fill="url(#adminSpark)" />
+                            <path d={spark.line} fill="none" stroke="#183f35" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                            {spark.points.map(([x, y], i) => (
+                                <circle key={i} cx={x} cy={y} r="3.5" fill="#183f35" />
+                            ))}
+                        </svg>
+                        <div className="mt-1 flex justify-between text-[10px] text-faint">
+                            {months.map(m => <span key={m.key}>{m.label}</span>)}
+                        </div>
+                        <p className="mt-3 text-xl font-bold text-primary">
+                            {formatRupees(months.reduce((sum, m) => sum + m.total, 0))}
+                        </p>
+                    </div>
+
+                    <div className="panel p-6">
+                        <h3 className="mb-5 text-sm font-bold text-ink">Technician workload</h3>
+                        {workload.length === 0 ? (
+                            <p className="text-[0.875rem] text-muted">No work assigned yet.</p>
+                        ) : (
+                            <div className="space-y-3.5">
+                                {workload.slice(0, 6).map(tech => (
+                                    <div key={tech.name}>
+                                        <div className="mb-1 flex justify-between gap-2 text-xs">
+                                            <span className="truncate text-muted">{tech.name}</span>
+                                            <span className={`shrink-0 font-bold ${tech.pct >= 90 ? 'text-clay-ink' : 'text-primary'}`}>
+                                                {tech.completed + tech.active} jobs
+                                            </span>
+                                        </div>
+                                        <div className="h-1.5 overflow-hidden rounded-full bg-sand">
+                                            <motion.div
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${tech.pct}%` }}
+                                                transition={{ duration: 0.8, ease: 'easeOut' }}
+                                                className={`h-full rounded-full ${tech.pct >= 90 ? 'bg-clay' : 'bg-primary'}`}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Top services */}
+                <div className="panel p-6">
+                    <div className="mb-5 flex items-center justify-between gap-3">
+                        <h2 className="font-bold text-ink">Top services by revenue</h2>
+                        <span className="shrink-0 text-xs text-muted">Last six months</span>
+                    </div>
+                    {topServices.length === 0 ? (
+                        <p className="text-[0.875rem] text-muted">Nothing invoiced yet.</p>
+                    ) : (
+                        <div className="space-y-4">
+                            {topServices.map(service => (
+                                <div key={service.name}>
+                                    <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+                                        <span className="text-sm text-ink-soft">{service.name}</span>
+                                        <span className="flex shrink-0 items-center gap-4 text-xs">
+                                            <span className="text-muted">{service.count} jobs</span>
+                                            <span className="font-bold text-primary">{formatRupees(service.total)}</span>
+                                        </span>
+                                    </div>
+                                    <div className="h-1.5 overflow-hidden rounded-full bg-sand">
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${service.bar}%` }}
+                                            transition={{ duration: 0.8, ease: 'easeOut' }}
+                                            className="h-full rounded-full bg-primary"
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </motion.div>
+        );
+    };
+
+    const renderCustomers = () => (
+        <motion.div key="customers" {...fade} className="space-y-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h2 className="text-xl font-bold text-ink">Customer management</h2>
+                    <p className="mt-0.5 text-xs text-muted">
+                        {customers.length} on the book · {customers.filter(c => c.status === 'Active').length} active
+                    </p>
+                </div>
+                <button
+                    type="button"
+                    onClick={() => setDialog({ kind: 'customer-form', customer: null })}
+                    className="btn-primary px-4 py-2 text-sm"
+                >
+                    <UserPlus size={14} aria-hidden="true" /> Add customer
+                </button>
             </div>
 
-            {/* Tab Content */}
-            <div className="max-w-7xl mx-auto px-4 py-6 pb-12">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <StatCard label="Total customers" value={customers.length} />
+                <StatCard label="Premium members" value={customers.filter(c => c.plan === 'Premium').length} />
+                <StatCard label="Vehicles on record" value={vehicles.length} />
+            </div>
+
+            <div className="panel p-4 sm:p-6">
+                <div className="mb-5 flex flex-wrap items-center gap-3">
+                    <div className="flex min-w-0 flex-1 items-center gap-2 rounded-sm border border-line bg-sand px-3 py-2 sm:max-w-sm">
+                        <Search size={14} className="shrink-0 text-muted" aria-hidden="true" />
+                        <input
+                            id="admin-customer-search"
+                            type="search"
+                            value={search}
+                            onChange={event => setSearch(event.target.value)}
+                            aria-label="Search customers by name, email, vehicle or service"
+                            placeholder="Name, email, plate or service…"
+                            className="w-full min-w-0 bg-transparent text-sm text-ink outline-none placeholder:text-faint"
+                        />
+                        {search && (
+                            <button
+                                type="button"
+                                onClick={() => setSearch('')}
+                                aria-label="Clear search"
+                                className="shrink-0 text-faint transition-colors hover:text-ink"
+                            >
+                                <XCircle size={14} aria-hidden="true" />
+                            </button>
+                        )}
+                    </div>
+                    <button type="button" onClick={exportCustomers} className="btn-secondary px-4 py-2 text-xs">
+                        <Download size={12} aria-hidden="true" /> Export
+                    </button>
+                    <p role="status" aria-live="polite" className="w-full text-xs text-muted sm:w-auto">
+                        {query
+                            ? `${visibleCustomers.length} of ${customers.length} match “${debouncedSearch.trim()}”`
+                            : `Showing all ${customers.length}`}
+                    </p>
+                </div>
+
+                {visibleCustomers.length === 0 ? (
+                    <EmptyState
+                        icon={SearchX}
+                        title="No customer matches that"
+                        message={`Nothing on the book matches “${debouncedSearch.trim()}”. Searches cover name, email, phone, city, vehicle, plate and service.`}
+                        action={
+                            <button type="button" onClick={() => setSearch('')} className="btn-secondary px-5 py-2.5 text-sm">
+                                Clear search
+                            </button>
+                        }
+                    />
+                ) : (
+                    // `relative` is load-bearing: the sr-only labels inside the
+                    // table are absolutely positioned, and without a containing
+                    // block here they escaped this scroller's clip and gave the
+                    // whole page a few hundred px of sideways scroll on a phone.
+                    <div className="relative -mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+                        <table className="w-full min-w-[52rem] text-sm">
+                            <caption className="sr-only">Customers on the workshop book</caption>
+                            <thead>
+                                <tr className="border-b border-line text-[10px] uppercase tracking-[0.08em] text-faint">
+                                    <th scope="col" className="pb-3 text-left">Customer</th>
+                                    <th scope="col" className="pb-3 text-left">Vehicles</th>
+                                    <th scope="col" className="pb-3 text-left">Last visit</th>
+                                    <th scope="col" className="pb-3 text-center">Visits</th>
+                                    <th scope="col" className="pb-3 text-right">Total spent</th>
+                                    <th scope="col" className="pb-3 text-left">Plan</th>
+                                    <th scope="col" className="pb-3 text-left">Status</th>
+                                    <th scope="col" className="pb-3 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {visibleCustomers.map(customer => {
+                                    const theirVehicles = vehicles.filter(v => v.ownerId === customer.id);
+                                    const theirRecords = records
+                                        .filter(r => r.customerId === customer.id)
+                                        .sort((a, b) => b.completedOn.localeCompare(a.completedOn));
+                                    const spend = theirRecords.reduce((sum, r) => sum + r.cost, 0);
+
+                                    return (
+                                        <tr key={customer.id} className="border-b border-line transition-colors hover:bg-sand">
+                                            <td className="py-3">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setDialog({ kind: 'customer-details', customer })}
+                                                    className="flex items-center gap-2 text-left"
+                                                >
+                                                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-forest-pale text-xs font-bold text-primary">
+                                                        {customer.name[0]}
+                                                    </span>
+                                                    <span className="min-w-0">
+                                                        <span className="block font-medium text-ink hover:underline">{customer.name}</span>
+                                                        <span className="block truncate text-xs text-muted">{customer.email}</span>
+                                                    </span>
+                                                </button>
+                                            </td>
+                                            <td className="py-3 text-muted">
+                                                {theirVehicles.length === 0 ? (
+                                                    <span className="text-faint">None on record</span>
+                                                ) : (
+                                                    <>
+                                                        {vehicleLabel(theirVehicles[0])}
+                                                        {theirVehicles.length > 1 && (
+                                                            <span className="text-faint"> +{theirVehicles.length - 1}</span>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </td>
+                                            <td className="py-3 whitespace-nowrap text-muted">
+                                                {formatDate(theirRecords[0]?.completedOn ?? null)}
+                                            </td>
+                                            <td className="py-3 text-center font-mono text-ink-soft">{theirRecords.length}</td>
+                                            <td className="py-3 text-right font-semibold text-primary">{formatRupees(spend)}</td>
+                                            <td className="py-3"><StatusBadge status={customer.plan} size="sm" /></td>
+                                            <td className="py-3"><StatusBadge status={customer.status} size="sm" /></td>
+                                            <td className="py-3 text-right">
+                                                <span className="inline-flex gap-1">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setDialog({ kind: 'customer-form', customer })}
+                                                        className="rounded-sm bg-sand px-3 py-1 text-xs text-muted transition-colors hover:bg-forest-pale hover:text-primary"
+                                                    >
+                                                        Edit<span className="sr-only"> {customer.name}</span>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setDialog({ kind: 'customer-remove', customer })}
+                                                        className="rounded-sm bg-sand px-3 py-1 text-xs text-muted transition-colors hover:bg-clay-pale hover:text-clay-ink"
+                                                    >
+                                                        Remove<span className="sr-only"> {customer.name}</span>
+                                                    </button>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+        </motion.div>
+    );
+
+    const renderTechnicians = () => (
+        <motion.div key="technicians" {...fade} className="space-y-5">
+            <div>
+                <h2 className="text-xl font-bold text-ink">Technician workload</h2>
+                <p className="mt-0.5 text-xs text-muted">
+                    {workload.length} on the roster · {workload.filter(t => t.active > 0).length} with a job in hand
+                </p>
+            </div>
+
+            {workload.length === 0 ? (
+                <div className="panel">
+                    <EmptyState
+                        icon={Wrench}
+                        title="No work on the roster"
+                        message="Assign a technician to a job and their workload appears here."
+                    />
+                </div>
+            ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {workload.map(tech => {
+                        const theirJobs = openJobs.filter(b => b.technician === tech.name);
+                        const rated = records.filter(r => r.technician === tech.name && r.rating !== null);
+                        const rating = rated.length
+                            ? rated.reduce((sum, r) => sum + (r.rating ?? 0), 0) / rated.length
+                            : null;
+
+                        return (
+                            <div key={tech.name} className="panel border-line p-5 transition-colors hover:border-forest">
+                                <div className="mb-3 flex items-start justify-between gap-3">
+                                    <div className="flex min-w-0 items-center gap-3">
+                                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-forest-pale text-sm font-bold text-primary">
+                                            {tech.name[0]}
+                                        </span>
+                                        <div className="min-w-0">
+                                            <p className="truncate text-sm font-semibold text-ink">{tech.name}</p>
+                                            <p className="text-xs text-primary">
+                                                {tech.active > 0 ? `${tech.active} job${tech.active === 1 ? '' : 's'} in hand` : 'Free'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <span className={`shrink-0 rounded-full px-2 py-1 text-xs font-bold ${tech.active > 0 ? 'bg-clay-pale text-clay-ink' : 'bg-forest-pale text-primary'}`}>
+                                        {tech.active > 0 ? 'On a job' : 'Available'}
+                                    </span>
+                                </div>
+
+                                <dl className="space-y-2 border-t border-line pt-3 text-xs">
+                                    <div className="flex justify-between gap-2">
+                                        <dt className="text-muted">Services completed</dt>
+                                        <dd className="font-bold text-ink">{tech.completed}</dd>
+                                    </div>
+                                    <div className="flex justify-between gap-2">
+                                        <dt className="text-muted">Average rating</dt>
+                                        <dd className="flex items-center gap-1 font-bold text-clay-ink">
+                                            {rating === null ? <span className="text-muted">Not rated</span> : (
+                                                <>
+                                                    <Star size={10} className="fill-clay" aria-hidden="true" />
+                                                    {rating.toFixed(1)}
+                                                </>
+                                            )}
+                                        </dd>
+                                    </div>
+                                </dl>
+
+                                {theirJobs.length > 0 && (
+                                    <ul className="mt-3 space-y-1.5 border-t border-line pt-3">
+                                        {theirJobs.map(job => (
+                                            <li key={job.id}>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setDialog({ kind: 'job', booking: job })}
+                                                    className="flex w-full items-center justify-between gap-2 text-xs text-muted transition-colors hover:text-ink"
+                                                >
+                                                    <span className="min-w-0 truncate">
+                                                        <span className="font-mono text-primary">{job.id}</span> · {job.serviceName}
+                                                    </span>
+                                                    <ChevronRight size={12} className="shrink-0" aria-hidden="true" />
+                                                </button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </motion.div>
+    );
+
+    const renderRevenue = () => {
+        const total = months.reduce((sum, m) => sum + m.total, 0);
+        const jobs = months.reduce((sum, m) => sum + m.count, 0);
+        const peak = Math.max(...months.map(m => m.total), 1);
+
+        return (
+            <motion.div key="revenue" {...fade} className="space-y-5">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h2 className="text-xl font-bold text-ink">Revenue overview</h2>
+                        <p className="mt-0.5 text-xs text-muted">
+                            {months[0].label} – {thisMonth.label} · invoiced work only
+                        </p>
+                    </div>
+                    <button type="button" onClick={exportRevenue} className="btn-secondary px-4 py-2 text-sm">
+                        <Download size={14} aria-hidden="true" /> Export report
+                    </button>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <StatCard label="Total (6 months)" value={formatRupeesCompact(total)} note={`${jobs} jobs`} />
+                    <StatCard label="This month" value={formatRupeesCompact(thisMonth.total)} note={`${thisMonth.count} jobs`} />
+                    <StatCard
+                        label="Average per job"
+                        value={jobs === 0 ? '—' : formatRupees(Math.round(total / jobs))}
+                    />
+                    <StatCard label="Outstanding" value={formatRupees(0)} note="All invoices settled" />
+                </div>
+
+                <div className="panel p-6">
+                    <h3 className="mb-6 font-bold text-ink">Monthly revenue</h3>
+                    {total === 0 ? (
+                        <EmptyState title="Nothing invoiced in this window" />
+                    ) : (
+                        <div className="flex h-40 items-end gap-2 sm:gap-4">
+                            {months.map((month, i) => (
+                                <div key={month.key} className="flex min-w-0 flex-1 flex-col items-center gap-2">
+                                    <span className="truncate text-[10px] font-bold text-primary sm:text-xs">
+                                        {formatRupeesCompact(month.total)}
+                                    </span>
+                                    <motion.div
+                                        initial={{ height: 0 }}
+                                        animate={{ height: `${(month.total / peak) * 100}%` }}
+                                        transition={{ duration: 0.8, delay: i * 0.08, ease: 'easeOut' }}
+                                        className={`w-full rounded-t-lg ${i === months.length - 1 ? 'bg-primary' : 'bg-forest-pale'}`}
+                                    />
+                                    <span className="text-xs text-muted">{month.label}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <div className="panel p-4 sm:p-6">
+                    <h3 className="mb-5 font-bold text-ink">Monthly breakdown</h3>
+                    <div className="relative -mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+                        <table className="w-full min-w-[32rem] text-sm">
+                            <caption className="sr-only">Revenue by month</caption>
+                            <thead>
+                                <tr className="border-b border-line text-[10px] uppercase tracking-[0.08em] text-faint">
+                                    <th scope="col" className="pb-3 text-left">Month</th>
+                                    <th scope="col" className="pb-3 text-right">Revenue</th>
+                                    <th scope="col" className="pb-3 text-right">Jobs</th>
+                                    <th scope="col" className="pb-3 text-right">Average per job</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {[...months].reverse().map(month => (
+                                    <tr key={month.key} className="border-b border-line transition-colors hover:bg-sand">
+                                        <td className="py-3 font-medium text-ink">{month.label} {month.key.slice(0, 4)}</td>
+                                        <td className="py-3 text-right font-bold text-primary">{formatRupees(month.total)}</td>
+                                        <td className="py-3 text-right text-muted">{month.count}</td>
+                                        <td className="py-3 text-right font-mono text-xs text-muted">
+                                            {month.count === 0 ? '—' : formatRupees(Math.round(month.total / month.count))}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </motion.div>
+        );
+    };
+
+    const renderFloor = () => {
+        const counts: Record<FloorFilter, number> = {
+            All: openJobs.length,
+            Pending: openJobs.filter(b => b.status === 'Pending').length,
+            Confirmed: openJobs.filter(b => b.status === 'Confirmed').length,
+            'In Service': openJobs.filter(b => b.status === 'In Service').length,
+            Completed: bookings.filter(b => b.status === 'Completed').length,
+            Cancelled: bookings.filter(b => b.status === 'Cancelled').length,
+        };
+
+        return (
+            <motion.div key="floor" {...fade} className="space-y-5">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h2 className="text-xl font-bold text-ink">Workshop floor</h2>
+                        <p className="mt-0.5 text-xs text-muted">
+                            {openJobs.length} open job{openJobs.length === 1 ? '' : 's'} ·{' '}
+                            {counts['In Service']} on the ramps
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setDialog({ kind: 'booking-form' })}
+                        className="btn-primary px-4 py-2 text-sm"
+                    >
+                        <UserPlus size={14} aria-hidden="true" /> Add booking
+                    </button>
+                </div>
+
+                {/* Filters — the summary tiles double as the filter control */}
+                <div
+                    role="group"
+                    aria-label="Filter jobs by status"
+                    className="grid grid-cols-2 gap-3 sm:grid-cols-4"
+                >
+                    {(['All', 'Pending', 'Confirmed', 'In Service'] as const).map(option => {
+                        const selected = floorFilter === option;
+                        return (
+                            <button
+                                key={option}
+                                type="button"
+                                aria-pressed={selected}
+                                onClick={() => setFloorFilter(option)}
+                                className={`panel p-4 text-center transition-colors ${selected ? 'border-forest bg-forest-pale' : 'border-line hover:border-forest'}`}
+                            >
+                                <span className={`block text-2xl font-bold ${option === 'In Service' ? 'text-clay-ink' : 'text-primary'}`}>
+                                    {counts[option]}
+                                </span>
+                                <span className="mt-1 block text-xs text-muted">{option}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {floorJobs.length === 0 ? (
+                    <div className="panel">
+                        <EmptyState
+                            icon={floorFilter === 'All' ? CheckCircle2 : SearchX}
+                            title={floorFilter === 'All' ? 'The floor is clear' : `No job is ${floorFilter.toLowerCase()}`}
+                            message={floorFilter === 'All'
+                                ? 'Nothing is waiting, confirmed or in service right now.'
+                                : 'Try another status, or add a booking.'}
+                            action={floorFilter === 'All' ? (
+                                <button
+                                    type="button"
+                                    onClick={() => setDialog({ kind: 'booking-form' })}
+                                    className="btn-primary px-5 py-2.5 text-sm"
+                                >
+                                    Add a booking
+                                </button>
+                            ) : (
+                                <button type="button" onClick={() => setFloorFilter('All')} className="btn-secondary px-5 py-2.5 text-sm">
+                                    Show all jobs
+                                </button>
+                            )}
+                        />
+                    </div>
+                ) : (
+                    <ul className="space-y-3">
+                        {floorJobs.map(job => {
+                            const vehicle = vehicles.find(v => v.id === job.vehicleId);
+                            const customer = customers.find(c => c.id === job.customerId);
+                            return (
+                                <li
+                                    key={job.id}
+                                    className="panel flex flex-col justify-between gap-4 p-5 transition-colors hover:border-forest sm:flex-row sm:items-center"
+                                >
+                                    <div className="flex min-w-0 items-start gap-4">
+                                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-sm bg-forest-pale">
+                                            <Car size={22} className="text-primary" aria-hidden="true" />
+                                        </span>
+                                        <div className="min-w-0">
+                                            <p className="font-semibold text-ink">{vehicleLabel(vehicle)}</p>
+                                            <p className="mt-0.5 text-xs text-muted">
+                                                {vehicle?.registration ?? 'No plate on record'} · Owner: {customer?.name ?? 'unknown'}
+                                            </p>
+                                            <p className="mt-1 text-xs text-muted">
+                                                <span className="font-mono text-primary">{job.id}</span> · {job.serviceName}
+                                                {vehicle ? ` · ${formatKm(vehicle.odometerKm)}` : ''}
+                                                {job.bay ? ` · ${job.bay}` : ' · no bay'}
+                                                {job.technician ? ` · ${job.technician}` : ' · no technician'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex shrink-0 flex-wrap items-center gap-3">
+                                        <span className="text-xs text-muted">
+                                            {formatRelativeDay(job.scheduledFor)} · {job.slot}
+                                        </span>
+                                        <BookingStatusSelect booking={job} />
+                                        <button
+                                            type="button"
+                                            onClick={() => setDialog({ kind: 'job', booking: job })}
+                                            className="btn-secondary px-4 py-2 text-xs"
+                                        >
+                                            Update<span className="sr-only"> {job.id}</span>
+                                        </button>
+                                    </div>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                )}
+            </motion.div>
+        );
+    };
+
+    const sections: Record<string, () => React.ReactNode> = {
+        Overview: renderOverview,
+        Customers: renderCustomers,
+        Technicians: renderTechnicians,
+        Revenue: renderRevenue,
+        'Workshop Floor': renderFloor,
+        Settings: () => (
+            <motion.div key="admin-settings" {...fade}>
+                <WorkshopSettings onResetWorkshop={resetWorkshop} />
+            </motion.div>
+        ),
+    };
+
+    return (
+        <div className="bg-paper">
+            <DashboardTabs
+                tabs={tabs}
+                active={tab}
+                onChange={setTab}
+                idPrefix="admin"
+                actions={
+                    <>
+                        <button
+                            type="button"
+                            onClick={() => setDialog({ kind: 'booking-form' })}
+                            className="btn-primary px-4 py-2 text-xs"
+                        >
+                            <UserPlus size={13} aria-hidden="true" /> Add booking
+                        </button>
+                        <button type="button" onClick={exportBookings} className="btn-secondary px-4 py-2 text-xs">
+                            <Download size={13} aria-hidden="true" /> Export
+                        </button>
+                    </>
+                }
+            />
+
+            <div
+                {...dashboardPanelProps('admin', tab)}
+                className="mx-auto max-w-7xl px-4 py-6 pb-12"
+            >
                 <AnimatePresence mode="wait">
-                    {renderContent()}
+                    {sections[tab]?.()}
                 </AnimatePresence>
             </div>
+
+            {/* ── Dialogs ──────────────────────────────────────── */}
+
+            {dialog.kind === 'job' && (
+                <JobUpdateDialog open onClose={close} booking={dialog.booking} />
+            )}
+
+            {dialog.kind === 'customer-details' && (
+                <CustomerDetailsDialog
+                    open onClose={close}
+                    customer={dialog.customer}
+                    onEdit={customer => setDialog({ kind: 'customer-form', customer })}
+                    onNewBooking={customer => setDialog({ kind: 'booking-form', customerId: customer.id })}
+                />
+            )}
+
+            {dialog.kind === 'customer-form' && (
+                <CustomerFormDialog open onClose={close} customer={dialog.customer} />
+            )}
+
+            {dialog.kind === 'customer-remove' && (
+                <ConfirmDialog
+                    open onClose={close}
+                    tone="danger"
+                    title="Remove this customer?"
+                    confirmLabel="Remove customer"
+                    message={
+                        <>
+                            <strong className="font-semibold text-ink">{dialog.customer.name}</strong>{' '}
+                            will be taken off the book along with{' '}
+                            {vehicles.filter(v => v.ownerId === dialog.customer.id).length} vehicle
+                            {vehicles.filter(v => v.ownerId === dialog.customer.id).length === 1 ? '' : 's'},
+                            and any open job against the account will be cancelled. Invoiced work stays
+                            in the revenue ledger.
+                        </>
+                    }
+                    onConfirm={() => confirmRemoveCustomer(dialog.customer)}
+                />
+            )}
+
+            {dialog.kind === 'booking-form' && (
+                <BookingFormDialog
+                    open onClose={close}
+                    vehicles={vehicles}
+                    customers={customers}
+                    customerId={dialog.customerId ?? customers[0]?.id ?? ''}
+                />
+            )}
         </div>
     );
 };
